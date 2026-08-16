@@ -17,14 +17,8 @@ const events = require('./inconnuboy');
 const { sms } = require('./lib/msg');
 const {
     connectdb,
-    saveSessionToMongoDB,
-    getSessionFromMongoDB,
-    deleteSessionFromMongoDB,
     getUserConfigFromMongoDB,
     updateUserConfigInMongoDB,
-    addNumberToMongoDB,
-    removeNumberFromMongoDB,
-    getAllNumbersFromMongoDB,
     saveOTPToMongoDB,
     verifyOTPFromMongoDB,
     incrementStats,
@@ -90,12 +84,6 @@ function isNumberAlreadyConnected(number) {
     return activeSockets.has(number.replace(/[^0-9]/g, ''));
 }
 
-function hasCompleteLocalAuthState(sessionPath) {
-    if (!fs.existsSync(sessionPath)) return false;
-    const files = fs.readdirSync(sessionPath);
-    return files.includes('creds.json') && files.some(file => file.startsWith('app-state-sync-key-'));
-}
-
 async function resetPairingState(number) {
     const sanitizedNumber = number.replace(/[^0-9]/g, '');
     const socket = activeSockets.get(sanitizedNumber);
@@ -103,9 +91,7 @@ async function resetPairingState(number) {
     if (socket) {
         try {
             socket.ev.removeAllListeners();
-            if (socket.ws && socket.ws.readyState !== 3) {
-                await socket.ws.close();
-            }
+            await Promise.resolve(socket.ws?.close());
         } catch (error) {
             inconnuboyLog(`Previous socket cleanup warning for ${sanitizedNumber}: ${error.message}`, 'warning');
         }
@@ -117,9 +103,6 @@ async function resetPairingState(number) {
     if (fs.existsSync(sessionPath)) {
         await fs.remove(sessionPath);
     }
-
-    // A fresh pairing request must not restore the previous device credentials.
-    await deleteSessionFromMongoDB(sanitizedNumber);
     inconnuboyLog(`♻️ Fresh pairing state ready for ${sanitizedNumber}`, 'info');
 }
 
@@ -132,6 +115,42 @@ function getConnectionStatus(number) {
         connectionTime: connectionTime ? new Date(connectionTime).toLocaleString() : null,
         uptime: connectionTime ? Math.floor((Date.now() - connectionTime) / 1000) : 0
     };
+}
+
+function getDisconnectStatus(lastDisconnect) {
+    const error = lastDisconnect && lastDisconnect.error;
+    return error && (
+        error.output?.statusCode ||
+        error.data?.statusCode ||
+        error.statusCode
+    );
+}
+
+function waitForPairingReady(socket, timeoutMs = 15000) {
+    return new Promise((resolve, reject) => {
+        let settled = false;
+        const finish = (callback, value) => {
+            if (settled) return;
+            settled = true;
+            clearTimeout(timeout);
+            socket.ev.off('connection.update', onUpdate);
+            callback(value);
+        };
+        const onUpdate = (update) => {
+            if (update.connection === 'open' || update.isOnline === true) {
+                finish(resolve);
+                return;
+            }
+            if (update.connection === 'close') {
+                const status = getDisconnectStatus(update.lastDisconnect);
+                finish(reject, new Error(`WhatsApp socket closed before pairing was ready${status ? ` (${status})` : ''}`));
+            }
+        };
+        const timeout = setTimeout(() => {
+            finish(reject, new Error('WhatsApp pairing service did not become ready in time'));
+        }, timeoutMs);
+        socket.ev.on('connection.update', onUpdate);
+    });
 }
 
 function inconnuboyLog(message, type = 'info') {
@@ -176,7 +195,7 @@ function setupAutoRestart(socket, number) {
     socket.ev.on('connection.update', async (update) => {
         const { connection, lastDisconnect } = update;
         if (connection === 'close') {
-            const statusCode = lastDisconnect && lastDisconnect.error && lastDisconnect.error.output && lastDisconnect.error.output.statusCode;
+            const statusCode = getDisconnectStatus(lastDisconnect);
             const errorMessage = lastDisconnect && lastDisconnect.error && lastDisconnect.error.message;
             inconnuboyLog(`Connection closed for ${number}: ${statusCode} - ${errorMessage}`, 'warning');
 
@@ -185,8 +204,6 @@ function setupAutoRestart(socket, number) {
                 const sanitizedNumber = number.replace(/[^0-9]/g, '');
                 activeSockets.delete(sanitizedNumber);
                 socketCreationTime.delete(sanitizedNumber);
-                await deleteSessionFromMongoDB(sanitizedNumber);
-                await removeNumberFromMongoDB(sanitizedNumber);
                 socket.ev.removeAllListeners();
                 return;
             }
@@ -197,8 +214,13 @@ function setupAutoRestart(socket, number) {
             // Do not reconnect an unregistered socket: the old pairing code would
             // be bound to the dead socket and WhatsApp would remain on "Logging in".
             if (!socket.user) {
-                activeSockets.delete(number.replace(/[^0-9]/g, ''));
-                socketCreationTime.delete(number.replace(/[^0-9]/g, ''));
+                const sanitizedNumber = number.replace(/[^0-9]/g, '');
+                if (activeSockets.get(sanitizedNumber) === socket) {
+                    activeSockets.delete(sanitizedNumber);
+                    socketCreationTime.delete(sanitizedNumber);
+                }
+                const sessionPath = path.join(__dirname, 'session', `session_${sanitizedNumber}`);
+                await fs.remove(sessionPath).catch(() => {});
                 inconnuboyLog(`Pairing socket closed before login for ${number}; generate a fresh code.`, 'warning');
                 return;
             }
@@ -207,13 +229,14 @@ function setupAutoRestart(socket, number) {
                 restartAttempts++;
                 inconnuboyLog(`Reconnecting ${number} (${restartAttempts}/${maxRestartAttempts}) in 10s...`, 'warning');
                 const sanitizedNumber = number.replace(/[^0-9]/g, '');
-                activeSockets.delete(sanitizedNumber);
-                socketCreationTime.delete(sanitizedNumber);
+                if (activeSockets.get(sanitizedNumber) === socket) {
+                    activeSockets.delete(sanitizedNumber);
+                    socketCreationTime.delete(sanitizedNumber);
+                }
                 socket.ev.removeAllListeners();
                 await delay(10000);
                 try {
-                    const mockRes = { headersSent: false, send: () => {}, status: () => mockRes, setHeader: () => {}, json: () => {} };
-                    await inconnuboyPair(number, mockRes);
+                    await inconnuboyPair(number, null, { reconnect: true });
                 } catch (e) { inconnuboyLog(`Reconnection failed for ${number}: ${e.message}`, 'error'); }
             } else {
                 inconnuboyLog(`Max restart attempts reached for ${number}.`, 'error');
@@ -224,7 +247,7 @@ function setupAutoRestart(socket, number) {
 }
 
 
-async function inconnuboyPair(number, res = null, { forceNewPairing = false } = {}) {
+async function inconnuboyPair(number, res = null, { reconnect = false } = {}) {
     let connectionLockKey;
     const sanitizedNumber = number.replace(/[^0-9]/g, '');
 
@@ -249,36 +272,18 @@ async function inconnuboyPair(number, res = null, { forceNewPairing = false } = 
         }
         global[connectionLockKey] = true;
 
-        if (forceNewPairing) {
+        if (!reconnect) {
             await resetPairingState(sanitizedNumber);
         } else if (isNumberAlreadyConnected(sanitizedNumber)) {
-            const status = getConnectionStatus(sanitizedNumber);
-            if (res && !res.headersSent) {
-                return res.json({ success: false, status: 'already_connected', message: 'Number is already connected', connectionTime: status.connectionTime, uptime: `${status.uptime} seconds` });
-            }
             return;
         }
 
-        // Check MongoDB session
-        const storedSession = forceNewPairing ? null : await getSessionFromMongoDB(sanitizedNumber);
-        const hasLocalAuth = hasCompleteLocalAuthState(sessionPath);
-        const existingSession = storedSession && hasLocalAuth ? storedSession : null;
-
-        if (!existingSession) {
-            inconnuboyLog(`No MongoDB session for ${sanitizedNumber} — new pairing required`, 'info');
-            if (storedSession && !hasLocalAuth) {
-                // MongoDB stores only the creds object in this base. Restoring
-                // it without the matching key files causes WhatsApp to hang
-                // forever on "Logging in", so start a clean pairing instead.
-                await deleteSessionFromMongoDB(sanitizedNumber);
-                inconnuboyLog(`Discarded incomplete stored auth for ${sanitizedNumber}`, 'warning');
-            }
-            if (fs.existsSync(sessionPath)) {
-                await fs.remove(sessionPath);
-                inconnuboyLog(`Cleaned leftover local session for ${sanitizedNumber}`, 'info');
-            }
-        } else {
-            inconnuboyLog(`🔄 Reusing complete local session for ${sanitizedNumber}`, 'success');
+        // Pairing credentials are deliberately never restored from a database.
+        // Each API request starts from a clean local auth directory, while the
+        // directory itself remains available only for the current live socket.
+        if (fs.existsSync(sessionPath)) {
+            await fs.remove(sessionPath);
+            inconnuboyLog(`Cleaned leftover local session for ${sanitizedNumber}`, 'info');
         }
 
         const { state, saveCreds } = await useMultiFileAuthState(sessionPath);
@@ -343,10 +348,10 @@ async function inconnuboyPair(number, res = null, { forceNewPairing = false } = 
         if (!conn.authState.creds.registered) {
             inconnuboyLog(`🔐 Starting NEW pairing process for ${sanitizedNumber}`, 'info');
             try {
-                // Give the WebSocket time to finish its handshake before
-                // requesting the code; short delays often produce a code that
-                // shows correctly but leaves WhatsApp stuck on "Logging in".
-                await delay(3500);
+                // Baileys must have a live WebSocket before the code is issued.
+                // Requesting it on a blind timer can produce a code that is
+                // accepted by WhatsApp but never completes the login handshake.
+                await waitForPairingReady(conn);
                 const code = await conn.requestPairingCode(sanitizedNumber);
                 inconnuboyLog(`Pairing Code for ${sanitizedNumber}: ${code}`, 'success');
                 if (res && !res.headersSent) {
@@ -356,33 +361,34 @@ async function inconnuboyPair(number, res = null, { forceNewPairing = false } = 
                         code,
                         number: sanitizedNumber,
                         message: 'Enter this code in WhatsApp > Linked devices > Link a device.',
-                        repeatable: true
+                        repeatable: true,
+                        sessionPersistence: false
                     });
                 }
             } catch (error) {
                 inconnuboyLog(`Failed to request pairing code: ${error.message}`, 'error');
+                await resetPairingState(sanitizedNumber);
                 if (res && !res.headersSent) {
                     res.status(500).send({ error: 'Failed to get pairing code', status: 'error', message: error.message });
                 }
                 throw error;
             }
         } else {
-            inconnuboyLog(`✅ Using existing session for ${sanitizedNumber}`, 'success');
+            inconnuboyLog(`Unexpected registered auth state for fresh pairing ${sanitizedNumber}`, 'warning');
+            await resetPairingState(sanitizedNumber);
             if (res && !res.headersSent) {
-                res.json({ status: 'reconnecting', message: 'Reconnecting with existing session' });
+                return res.status(409).json({ success: false, status: 'fresh_pairing_required', message: 'Fresh pairing state could not be prepared.' });
             }
+            return;
         }
 
-        // Save creds on update
+        // Save credentials only to the temporary local state required by this
+        // live socket. No WhatsApp auth credentials are stored in MongoDB.
         conn.ev.on('creds.update', async () => {
-            await saveCreds();
-            const fileContent = await fs.readFile(path.join(sessionPath, 'creds.json'), 'utf8');
-            const creds = JSON.parse(fileContent);
-            const existingSessionCheck = await getSessionFromMongoDB(sanitizedNumber);
-            const isNewSession = !existingSessionCheck;
-            await saveSessionToMongoDB(sanitizedNumber, creds);
-            if (isNewSession) {
-                inconnuboyLog(`🎉 NEW user ${sanitizedNumber} successfully registered!`, 'success');
+            try {
+                await saveCreds();
+            } catch (error) {
+                inconnuboyLog(`Temporary auth state save failed for ${sanitizedNumber}: ${error.message}`, 'error');
             }
         });
 
@@ -397,16 +403,13 @@ async function inconnuboyPair(number, res = null, { forceNewPairing = false } = 
             if (connection === 'open') {
                 inconnuboyLog(`Connected: ${sanitizedNumber}`, 'success');
                 const userJid = jidNormalizedUser(conn.user.id);
-                await addNumberToMongoDB(sanitizedNumber);
-                if (!existingSession) {
-                    await conn.sendMessage(userJid, {
-                        image: { url: config.IMAGE_PATH },
-                        caption: `\n╭────────────────────◇\n│✦ *_MUZAMIL-XD_ — CONNECTED* 🔥\n│✦ Type *${prefix}menu* to see all commands 💫\n│✦ Prefix 『 ${prefix} 』  Mode 〔${mode}〕\n╰────────────────────○\n*© POWERED BY _MUZAMIL-XD_ • Muzamil Khan*`
-                    });
-                }
+                await conn.sendMessage(userJid, {
+                    image: { url: config.IMAGE_PATH },
+                    caption: `\n╭────────────────────◇\n│✦ *_MUZAMIL-XD_ — CONNECTED* 🔥\n│✦ Type *${prefix}menu* to see all commands 💫\n│✦ Prefix 『 ${prefix} 』  Mode 〔${mode}〕\n╰────────────────────○\n*© POWERED BY _MUZAMIL-XD_ • Muzamil Khan*`
+                });
             }
             if (connection === 'close') {
-                const reason = lastDisconnect && lastDisconnect.error && lastDisconnect.error.output && lastDisconnect.error.output.statusCode;
+                const reason = getDisconnectStatus(lastDisconnect);
                 if (reason === DisconnectReason.loggedOut) inconnuboyLog(`Session logged out.`, 'error');
             }
         });
@@ -561,9 +564,9 @@ async function handlePairingApi(req, res) {
         });
     }
 
-    // API pairing requests always start a fresh socket, so the same number can
-    // request a new code again after a previous attempt or completed login.
-    return inconnuboyPair(number, res, { forceNewPairing: true });
+    // Every API pairing request starts a fresh socket. Pairing credentials are
+    // not persisted, so the same number can request another code later.
+    return inconnuboyPair(number, res);
 }
 
 // Browser-friendly API format:
@@ -591,27 +594,11 @@ router.get('/disconnect', async (req, res) => {
         const socket = activeSockets.get(n);
         await socket.ws.close(); socket.ev.removeAllListeners();
         activeSockets.delete(n); socketCreationTime.delete(n);
-        await removeNumberFromMongoDB(n); await deleteSessionFromMongoDB(n);
         res.json({ status: 'success', message: 'Disconnected' });
     } catch (e) { res.status(500).json({ error: 'Failed to disconnect' }); }
 });
 router.get('/active', (req, res) => res.json({ count: activeSockets.size, numbers: Array.from(activeSockets.keys()) }));
 router.get('/ping', (req, res) => res.json({ status: 'active', message: 'MUZAMIL-XD is running', activeSessions: activeSockets.size }));
-router.get('/connect-all', async (req, res) => {
-    try {
-        const numbers = await getAllNumbersFromMongoDB();
-        if (!numbers.length) return res.status(404).json({ error: 'No numbers found' });
-        const results = [];
-        for (const number of numbers) {
-            if (activeSockets.has(number)) { results.push({ number, status: 'already_connected' }); continue; }
-            const mockRes = { headersSent: false, json: () => {}, status: () => mockRes };
-            await inconnuboyPair(number, mockRes);
-            results.push({ number, status: 'connection_initiated' });
-            await delay(1000);
-        }
-        res.json({ status: 'success', total: numbers.length, connections: results });
-    } catch (e) { res.status(500).json({ error: 'Failed' }); }
-});
 router.get('/update-config', async (req, res) => {
     const { number, config: configString } = req.query;
     if (!number || !configString) return res.status(400).json({ error: 'Number and config required' });
@@ -650,33 +637,23 @@ router.get('/stats', async (req, res) => {
 
 
 
-async function autoReconnectFromMongoDB() {
-    try {
-        inconnuboyLog('Attempting auto-reconnect from MongoDB...', 'info');
-        const numbers = await getAllNumbersFromMongoDB();
-        if (!numbers.length) { inconnuboyLog('No numbers in MongoDB', 'info'); return; }
-        for (const number of numbers) {
-            if (!activeSockets.has(number)) {
-                const mockRes = { headersSent: false, json: () => {}, status: () => mockRes };
-                await inconnuboyPair(number, mockRes);
-                await delay(2000);
-            }
-        }
-        inconnuboyLog('Auto-reconnect completed', 'success');
-    } catch (e) { inconnuboyLog(`autoReconnectFromMongoDB error: ${e.message}`, 'error'); }
-}
-
-setTimeout(() => { autoReconnectFromMongoDB(); }, 3000);
-
-
-
-process.on('exit', () => {
+function cleanupLocalAuthState() {
     activeSockets.forEach((socket, number) => {
         try { socket.ws.close(); } catch (_) {}
         activeSockets.delete(number); socketCreationTime.delete(number);
     });
     const sessionDir = path.join(__dirname, 'session');
     if (fs.existsSync(sessionDir)) fs.emptyDirSync(sessionDir);
+}
+
+process.on('exit', cleanupLocalAuthState);
+process.on('SIGINT', () => {
+    cleanupLocalAuthState();
+    process.exit(0);
+});
+process.on('SIGTERM', () => {
+    cleanupLocalAuthState();
+    process.exit(0);
 });
 
 process.on('uncaughtException', (err) => {
