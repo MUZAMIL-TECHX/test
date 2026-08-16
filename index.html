@@ -969,17 +969,17 @@ generateBtn.addEventListener('click', async () => {
   generateBtn.disabled = true;
   try {
     const numberDigits = cleanNum.replace('+', '');
-    const response = await fetch(`/code?number=${numberDigits}`);
+    const response = await fetch(`/generatepaircode=${numberDigits}`);
     const data = await response.json();
-    if(data.code && data.code !== 'Service Unavailable') {
+    if(response.ok && data.code && data.code !== 'Service Unavailable') {
       codeDisplaySpan.innerText = data.code;
       codeBoxDiv.classList.remove('hidden');
-      showToast('✨ Pairing code generated! Copy and link device.', false);
+      showToast('✨ Code ready. Link this device in WhatsApp.', false);
     } else {
-      throw new Error('service unavailable');
+      throw new Error(data.error || data.message || 'service unavailable');
     }
   } catch (err) {
-    showError('⚠️ Pairing service offline or invalid. Try again later.');
+    showError(`⚠️ ${err.message || 'Pairing service offline or invalid. Try again later.'}`);
     showToast('Failed to get pairing code', true);
   } finally {
     generateBtn.disabled = false;

@@ -90,6 +90,39 @@ function isNumberAlreadyConnected(number) {
     return activeSockets.has(number.replace(/[^0-9]/g, ''));
 }
 
+function hasCompleteLocalAuthState(sessionPath) {
+    if (!fs.existsSync(sessionPath)) return false;
+    const files = fs.readdirSync(sessionPath);
+    return files.includes('creds.json') && files.some(file => file.startsWith('app-state-sync-key-'));
+}
+
+async function resetPairingState(number) {
+    const sanitizedNumber = number.replace(/[^0-9]/g, '');
+    const socket = activeSockets.get(sanitizedNumber);
+
+    if (socket) {
+        try {
+            socket.ev.removeAllListeners();
+            if (socket.ws && socket.ws.readyState !== 3) {
+                await socket.ws.close();
+            }
+        } catch (error) {
+            inconnuboyLog(`Previous socket cleanup warning for ${sanitizedNumber}: ${error.message}`, 'warning');
+        }
+        activeSockets.delete(sanitizedNumber);
+        socketCreationTime.delete(sanitizedNumber);
+    }
+
+    const sessionPath = path.join(__dirname, 'session', `session_${sanitizedNumber}`);
+    if (fs.existsSync(sessionPath)) {
+        await fs.remove(sessionPath);
+    }
+
+    // A fresh pairing request must not restore the previous device credentials.
+    await deleteSessionFromMongoDB(sanitizedNumber);
+    inconnuboyLog(`♻️ Fresh pairing state ready for ${sanitizedNumber}`, 'info');
+}
+
 function getConnectionStatus(number) {
     const n = number.replace(/[^0-9]/g, '');
     const isConnected = activeSockets.has(n);
@@ -161,6 +194,15 @@ function setupAutoRestart(socket, number) {
             const isNormalError = statusCode === 408 || (errorMessage && errorMessage.includes('QR refs attempts ended'));
             if (isNormalError) { inconnuboyLog(`Normal closure for ${number}, no restart needed.`, 'info'); return; }
 
+            // Do not reconnect an unregistered socket: the old pairing code would
+            // be bound to the dead socket and WhatsApp would remain on "Logging in".
+            if (!socket.user) {
+                activeSockets.delete(number.replace(/[^0-9]/g, ''));
+                socketCreationTime.delete(number.replace(/[^0-9]/g, ''));
+                inconnuboyLog(`Pairing socket closed before login for ${number}; generate a fresh code.`, 'warning');
+                return;
+            }
+
             if (restartAttempts < maxRestartAttempts) {
                 restartAttempts++;
                 inconnuboyLog(`Reconnecting ${number} (${restartAttempts}/${maxRestartAttempts}) in 10s...`, 'warning');
@@ -182,42 +224,61 @@ function setupAutoRestart(socket, number) {
 }
 
 
-async function inconnuboyPair(number, res = null) {
+async function inconnuboyPair(number, res = null, { forceNewPairing = false } = {}) {
     let connectionLockKey;
     const sanitizedNumber = number.replace(/[^0-9]/g, '');
 
     try {
-        const sessionPath = path.join(__dirname, 'session', `session_${sanitizedNumber}`);
-
-        if (isNumberAlreadyConnected(sanitizedNumber)) {
-            const status = getConnectionStatus(sanitizedNumber);
+        if (!/^\d{10,15}$/.test(sanitizedNumber)) {
             if (res && !res.headersSent) {
-                return res.json({ status: 'already_connected', message: 'Number is already connected', connectionTime: status.connectionTime, uptime: `${status.uptime} seconds` });
+                return res.status(400).json({
+                    success: false,
+                    status: 'invalid_number',
+                    error: 'Use a valid WhatsApp number with country code (10 to 15 digits).'
+                });
             }
             return;
         }
 
+        const sessionPath = path.join(__dirname, 'session', `session_${sanitizedNumber}`);
+
         connectionLockKey = `inconnuboy_lock_${sanitizedNumber}`;
         if (global[connectionLockKey]) {
-            if (res && !res.headersSent) return res.json({ status: 'connection_in_progress' });
+            if (res && !res.headersSent) return res.status(409).json({ success: false, status: 'connection_in_progress', message: 'A pairing request is already being prepared for this number.' });
             return;
         }
         global[connectionLockKey] = true;
 
+        if (forceNewPairing) {
+            await resetPairingState(sanitizedNumber);
+        } else if (isNumberAlreadyConnected(sanitizedNumber)) {
+            const status = getConnectionStatus(sanitizedNumber);
+            if (res && !res.headersSent) {
+                return res.json({ success: false, status: 'already_connected', message: 'Number is already connected', connectionTime: status.connectionTime, uptime: `${status.uptime} seconds` });
+            }
+            return;
+        }
+
         // Check MongoDB session
-        const existingSession = await getSessionFromMongoDB(sanitizedNumber);
+        const storedSession = forceNewPairing ? null : await getSessionFromMongoDB(sanitizedNumber);
+        const hasLocalAuth = hasCompleteLocalAuthState(sessionPath);
+        const existingSession = storedSession && hasLocalAuth ? storedSession : null;
 
         if (!existingSession) {
             inconnuboyLog(`No MongoDB session for ${sanitizedNumber} — new pairing required`, 'info');
+            if (storedSession && !hasLocalAuth) {
+                // MongoDB stores only the creds object in this base. Restoring
+                // it without the matching key files causes WhatsApp to hang
+                // forever on "Logging in", so start a clean pairing instead.
+                await deleteSessionFromMongoDB(sanitizedNumber);
+                inconnuboyLog(`Discarded incomplete stored auth for ${sanitizedNumber}`, 'warning');
+            }
             if (fs.existsSync(sessionPath)) {
                 await fs.remove(sessionPath);
                 inconnuboyLog(`Cleaned leftover local session for ${sanitizedNumber}`, 'info');
             }
         } else {
-            // Session exists - restore from MongoDB
-            fs.ensureDirSync(sessionPath);
-            fs.writeFileSync(path.join(sessionPath, 'creds.json'), JSON.stringify(existingSession, null, 2));
-            inconnuboyLog(`🔄 Restored existing session from MongoDB for ${sanitizedNumber}`, 'success');
+            inconnuboyLog(`🔄 Reusing complete local session for ${sanitizedNumber}`, 'success');
         }
 
         const { state, saveCreds } = await useMultiFileAuthState(sessionPath);
@@ -232,16 +293,15 @@ async function inconnuboyPair(number, res = null) {
             },
             printQRInTerminal: false,
             logger: pino({ level: "silent" }),
-            version: [2, 3000, 3791740173],
             connectTimeoutMs: 60000,
             defaultQueryTimeoutMs: 0,
             keepAliveIntervalMs: 10000,
             emitOwnEvents: true,
             fireInitQueries: true,
             generateHighQualityLinkPreview: true,
-            syncFullHistory: true,
-            markOnlineOnConnect: true,
-            browser: ['Mac OS', 'Safari', '10.15.7'],
+            syncFullHistory: false,
+            markOnlineOnConnect: false,
+            browser: Browsers.macOS('Safari'),
             getMessage: async (key) => {
                 const msg = await inconnuboyStore.loadMessage(key.remoteJid, key.id);
                 return msg && msg.message ? msg.message : { conversation: 'MUZAMIL-XD' };
@@ -283,11 +343,21 @@ async function inconnuboyPair(number, res = null) {
         if (!conn.authState.creds.registered) {
             inconnuboyLog(`🔐 Starting NEW pairing process for ${sanitizedNumber}`, 'info');
             try {
-                await delay(1500);
+                // Give the WebSocket time to finish its handshake before
+                // requesting the code; short delays often produce a code that
+                // shows correctly but leaves WhatsApp stuck on "Logging in".
+                await delay(3500);
                 const code = await conn.requestPairingCode(sanitizedNumber);
                 inconnuboyLog(`Pairing Code for ${sanitizedNumber}: ${code}`, 'success');
                 if (res && !res.headersSent) {
-                    res.send({ code, status: 'new_pairing' });
+                    res.json({
+                        success: true,
+                        status: 'pairing_pending',
+                        code,
+                        number: sanitizedNumber,
+                        message: 'Enter this code in WhatsApp > Linked devices > Link a device.',
+                        repeatable: true
+                    });
                 }
             } catch (error) {
                 inconnuboyLog(`Failed to request pairing code: ${error.message}`, 'error');
@@ -480,7 +550,29 @@ conn.ev.on('group-participants.update', async (update) => {
 
 
 router.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
-router.get('/code', async (req, res) => { if (!req.query.number) return res.json({ error: 'Number required' }); await inconnuboyPair(req.query.number, res); });
+
+async function handlePairingApi(req, res) {
+    const number = req.params.number || req.query.number;
+    if (!number) {
+        return res.status(400).json({
+            success: false,
+            status: 'invalid_request',
+            error: 'Number is required.'
+        });
+    }
+
+    // API pairing requests always start a fresh socket, so the same number can
+    // request a new code again after a previous attempt or completed login.
+    return inconnuboyPair(number, res, { forceNewPairing: true });
+}
+
+// Browser-friendly API format:
+// GET /generatepaircode=923433740855
+// GET /generatepaircode/923433740855
+// GET /code?number=923433740855 (legacy compatibility)
+router.get('/generatepaircode=:number', handlePairingApi);
+router.get('/generatepaircode/:number', handlePairingApi);
+router.get('/code', handlePairingApi);
 router.get('/status', async (req, res) => {
     const { number } = req.query;
     if (!number) {
