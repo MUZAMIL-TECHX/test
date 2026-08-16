@@ -14,7 +14,7 @@ async (conn, mek, m, { from, q, reply }) => {
     try {
         if (!q) {
             return reply(
-                "*🔍 AP NE YOUTUBE KI VIDEOS SEARCH KARNI HAI 🥺*\n\n" +
+                "*🔍 YOU WANT TO SEARCH YOUTUBE VIDEOS 🥺*\n\n" +
                 "*Use:*\n.yts Video name\n\n" +
                 "*Example:*\n.yts Tajdar e Haram"
             )
@@ -24,7 +24,7 @@ async (conn, mek, m, { from, q, reply }) => {
         const videos = search.videos.slice(0, 10) // top 10 results
 
         if (videos.length === 0) {
-            return reply("*❌ KOI VIDEO NAHI MILI 🥺*")
+            return reply("*❌ NO VIDEOS FOUND 🥺*")
         }
 
         let text = "*📺 YOUTUBE SEARCH RESULTS 📺*\n\n"
@@ -40,7 +40,7 @@ async (conn, mek, m, { from, q, reply }) => {
 `
         }
 
-        text += "*👑 ARSLAN-MD-MINI WHATSAPP BOT 👑*"
+        text += "*MUZAMIL-XD WHATSAPP BOT 👑*"
 
         await conn.sendMessage(
             from,
@@ -50,6 +50,6 @@ async (conn, mek, m, { from, q, reply }) => {
 
     } catch (e) {
         console.log("YTS ERROR:", e)
-        reply("*❌ YOUTUBE SEARCH ME ERROR AYA 🥺*")
+        reply("*❌ ERROR IN YOUTUBE SEARCH 🥺*")
     }
 })

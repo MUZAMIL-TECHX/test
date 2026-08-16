@@ -5,7 +5,7 @@ cmd({
     pattern: "pair",
     alias: ["getpaijsksnsr", "pairing", "clonebnsjdndnznot"],
     react: "✅",
-    desc: "Get pairing code for ARSLAN-MD bot",
+    desc: "Get pairing code for MUZAMIL-XD bot",
     category: "download",
     use: ".pair 92323***",
     filename: __filename
@@ -81,7 +81,7 @@ cmd({
         
         // Send image with caption
         const sentMessage = await conn.sendMessage(from, {
-            image: { url: "https://files.catbox.moe/prkkzj.png" },
+            image: { url: "https://i.ibb.co/Y7Jyd15p/1000039546.png" },
             caption: `- *⍴ᥲіrіᥒg ᥴ᥆ძᥱ*\n\n Notification has been sent to your WhatsApp. Please check your phone and copy this code to pair it and get your session id.\n\n*🔢 Pairing Code*: *${pairingCode}*\n\n> *Copy it from below message 👇🏻*`
         }, { quoted: m });
 

@@ -32,7 +32,7 @@ cmd({
     react: "👑"
 },
 async(conn, mek, m, { args, isOwner, reply, botNumber, config }) => {
-    if (!isOwner) return reply("*YEH COMMAND SIRF MERE LIE HAI 😎*");
+    if (!isOwner) return reply("*⚠️ Only Owner Can Use This Command..!*");
     const value = args[0]?.toLowerCase();
     
     if (value === 'on' || value === 'true') {
@@ -40,7 +40,7 @@ async(conn, mek, m, { args, isOwner, reply, botNumber, config }) => {
     } else if (value === 'off' || value === 'false') {
         await updateConfig('AUTO_RECORDING', 'false', botNumber, config, reply);
     } else {
-        reply(`*ABHI :❯ ${config.AUTO_RECORDING} HAI 😊*\n\n*AUTO RECORDING ON KARNE K LIE LIKHO ☺️*\n*👑 ❮AUTORECORDING ON❯ 👑*\n*AUTORECORDING OFF KARNE K LIE LIKHO ☺️*\n*👑 ❮AUTORECORDING OFF❯ 👑*`);
+        reply(`*Current :❯ ${config.AUTO_RECORDING} 😊*\n\n* Type autorecording on*\n*👑 ❮AUTORECORDING ON❯ 👑*\n*Type autorecording off*\n*👑 ❮AUTORECORDING OFF❯ 👑*`);
     }
 });
 
@@ -52,7 +52,7 @@ cmd({
     react: "👑"
 },
 async(conn, mek, m, { args, isOwner, reply, botNumber, config }) => {
-    if (!isOwner) return reply("*YEH COMMAND SIRF MERE LIE HAI 😎*");
+    if (!isOwner) return reply("*⚠️ Only Owner Can Use This Command..!*");
     const value = args[0]?.toLowerCase();
     
     if (value === 'on' || value === 'true') {
@@ -60,7 +60,7 @@ async(conn, mek, m, { args, isOwner, reply, botNumber, config }) => {
     } else if (value === 'off' || value === 'false') {
         await updateConfig('AUTO_TYPING', 'false', botNumber, config, reply);
     } else {
-        reply(`*ABHI :❯ ${config.AUTO_TYPING} HAI 😊*\n\n*AUTO TYPING ON KARNE K LIE LIKHO ☺️*\n*👑 ❮AUTOTYPING ON❯ 👑*\n*AUTOTYPING OFF KARNE K LIE LIKHO ☺️*\n*👑 ❮AUTOTYPING OFF❯ 👑*`);
+        reply(`*Current :❯ ${config.AUTO_TYPING} 😊*\n\n*Type autotyping on*\n*👑 ❮AUTOTYPING ON❯ 👑*\n*type autotyping off*\n*👑 ❮AUTOTYPING OFF❯ 👑*`);
     }
 });
 
@@ -76,7 +76,7 @@ cmd({
     react: "👑"
 },
 async(conn, mek, m, { args, isOwner, reply, botNumber, config }) => {
-    if (!isOwner) return reply("*YEH COMMAND SIRF MERE LIE HAI ☺️*");
+    if (!isOwner) return reply("*⚠️ Only Owner Can Use This Command..!*");
     const value = args[0]?.toLowerCase();
     
     if (value === 'on' || value === 'true') {
@@ -84,7 +84,7 @@ async(conn, mek, m, { args, isOwner, reply, botNumber, config }) => {
     } else if (value === 'off' || value === 'false') {
         await updateConfig('ANTI_CALL', 'false', botNumber, config, reply);
     } else {
-        reply(`*ABHI :❯ ${config.AUTO_RECORDING} HAI 😊*\n\n*JO BHI CALL KARE GA KHUD HI REJECT HO JAYE GE 😃 YE SETTING ON KARNE K LIE LIKHO ☺️*\n*👑 ❮ANTICALL ON❯ 👑*\n*ANTICALL OFF KARNE K LIE LIKHO ☺️*\n*👑 ❮ANTICALL OFF❯ 👑*`);
+        reply(`*Current :❯ ${config.AUTO_RECORDING} 😊*\n\n*Whoever calls will be automatically rejected 😃 To turn this setting ON, type ☺️*\n*👑 ❮ANTICALL ON❯ 👑*\n*To turn ANTICALL OFF, type ☺️*\n*👑 ❮ANTICALL OFF❯ 👑*`);
     }
 });
 
@@ -99,7 +99,7 @@ cmd({
     react: "👑"
 },
 async(conn, mek, m, { args, isOwner, reply, botNumber, config }) => {
-    if (!isOwner) return reply("*YEH COMMAND SIRF MERE LIE HAI 😎*");
+    if (!isOwner) return reply("*THIS COMMAND IS ONLY FOR ME 😎*");
     const value = args[0]?.toLowerCase();
     
     if (value === 'on' || value === 'true') {
@@ -107,7 +107,7 @@ async(conn, mek, m, { args, isOwner, reply, botNumber, config }) => {
     } else if (value === 'off' || value === 'false') {
         await updateConfig('WELCOME', 'false', botNumber, config, reply);
     } else {
-        reply(`*ABHI :❯ ${config.WELCOME} HAI 😊*\n\n*JO NEW MEMBER GROUP JOIN KARE GA USKA WELCOME MSG BHEJ DYA JAYE GA 😃 YEH SETTING ON KARNE K LIE LIKHO ☺️*\n*👑 ❮WECOME ON❯ 👑*\n*WELCOME OFF KARNE K LIE LIKHO ☺️*\n*👑 ❮WELCOME OFF❯ 👑*`);
+        reply(`*Current :❯ ${config.WELCOME} 😊*\n\n*When a new member joins the group, a welcome message will be sent 😃 To turn this setting ON, type ☺️*\n*👑 ❮WECOME ON❯ 👑*\n*To turn WELCOME OFF, type ☺️*\n*👑 ❮WELCOME OFF❯ 👑*`);
     }
 });
 
@@ -118,7 +118,7 @@ cmd({
     react: "👑"
 },
 async(conn, mek, m, { args, isOwner, reply, botNumber, config }) => {
-    if (!isOwner) return reply("*YEH COMMAND SIRF MERE LIE HAI 😎*");
+    if (!isOwner) return reply("*THIS COMMAND IS ONLY FOR ME 😎*");
     const value = args[0]?.toLowerCase();
     
     if (value === 'on' || value === 'true') {
@@ -126,7 +126,7 @@ async(conn, mek, m, { args, isOwner, reply, botNumber, config }) => {
     } else if (value === 'off' || value === 'false') {
         await updateConfig('GOODBYE', 'false', botNumber, config, reply);
     } else {
-        reply(`*ABHI :❯ ${config.GOODBYE} HAI 😊*\n\n*JO MEMBER GROUP LEFT KARE GA USKA GOODBYE MSG BHEJ DYA JAYE GA 😃 YEH SETTING ON KARNE K LIE LIKHO ☺️*\n*👑 ❮GOODBYE ON❯ 👑*\n*GOODBYE OFF KARNE K LIE LIKHO ☺️*\n*👑 ❮GOODBYE OFF❯ 👑*`);
+        reply(`*Current :❯ ${config.GOODBYE} 😊*\n\n*When a member leaves the group, a goodbye message will be sent 😃 To turn this setting ON, type ☺️*\n*👑 ❮GOODBYE ON❯ 👑*\n*To turn GOODBYE OFF, type ☺️*\n*👑 ❮GOODBYE OFF❯ 👑*`);
     }
 });
 
@@ -141,7 +141,7 @@ cmd({
     react: "👀"
 },
 async(conn, mek, m, { args, isOwner, reply, botNumber, config }) => {
-    if (!isOwner) return reply("*YEH COMMAND SIRF MERE LIE HAI 😎*");
+    if (!isOwner) return reply("*THIS COMMAND IS ONLY FOR ME 😎*");
     const value = args[0]?.toLowerCase();
     
     if (value === 'on' || value === 'true') {
@@ -149,7 +149,7 @@ async(conn, mek, m, { args, isOwner, reply, botNumber, config }) => {
     } else if (value === 'off' || value === 'false') {
         await updateConfig('READ_MESSAGE', 'false', botNumber, config, reply);
     } else {
-        reply(`*ABHI ${config.READ_MESSAGE} HAI 😊*\n*JO BHI MSG KARE GA USKA MSG KHUD HI SEEN `);
+        reply(`*Currently ${config.READ_MESSAGE} 😊*\n*Whoever messages, their message will be automatically seen*`);
     }
 });
 
@@ -161,7 +161,7 @@ cmd({
     react: "😎"
 },
 async(conn, mek, m, { args, isOwner, reply, botNumber, config }) => {
-    if (!isOwner) return reply("*YEH COMMAND SIRF MERE LIE HAI 😎*");
+    if (!isOwner) return reply("*THIS COMMAND IS ONLY FOR ME 😎*");
     const value = args[0]?.toLowerCase();
     
     if (value === 'on' || value === 'true') {
@@ -169,7 +169,7 @@ async(conn, mek, m, { args, isOwner, reply, botNumber, config }) => {
     } else if (value === 'off' || value === 'false') {
         await updateConfig('AUTO_VIEW_STATUS', 'false', botNumber, config, reply);
     } else {
-        reply(`*ABHI ${config.AUTO_VIEW_STATUS} HAI 😊*\n\n*JO BHI STATUS LAGAYE GA KHUD HI SEEN HO JAYE GA 😃 YEH SETTING ON KARNE K LIE LIKHO ☺️*\n*👑 ❮AUTOSTATUSVIEW ON❯ 👑*\n*OFF KARNE KE LIE LIKHO ☺️*\n*👑 ❮AUTOSTATUSVIEW OFF❯ 👑*`);
+        reply(`*Currently ${config.AUTO_VIEW_STATUS} 😊*\n\n*Whoever posts a status will be automatically seen 😃 To turn this setting ON, type ☺️*\n*👑 ❮AUTOSTATUSVIEW ON❯ 👑*\n*To turn OFF, type ☺️*\n*👑 ❮AUTOSTATUSVIEW OFF❯ 👑*`);
     }
 });
 
@@ -204,14 +204,14 @@ cmd({
     react: "⚙️"
 },
 async(conn, mek, m, { args, isOwner, reply, botNumber, config }) => {
-    if (!isOwner) return reply("*YEH COMMAND SIRF MERE LIE HAI 😎*");
+    if (!isOwner) return reply("*THIS COMMAND IS ONLY FOR ME 😎*");
     const mode = args[0]?.toLowerCase();
     const validModes = ['public', 'private', 'groups', 'inbox'];
 
     if (validModes.includes(mode)) {
         await updateConfig('WORK_TYPE', mode, botNumber, config, reply);
     } else {
-        reply(`*GHALAT LIKHA HAI 🥺*\n*ESE LIKHO ☺️*COMMAND ❮MODE❯ LIKH KER IN ME SE KOI EK WORD LIKHO JAHA AP CHAHTE HO K BOT WORK KRE 🤗*\n ${validModes.join(', ')}\nCurrent: ${config.WORK_TYPE}`);
+        reply(`*INCORRECT INPUT 🥺*\n*Type like this ☺️* Write COMMAND ❮MODE❯ and then type one of these words where you want the bot to work 🤗*\n ${validModes.join(', ')}\nCurrent: ${config.WORK_TYPE}`);
     }
 });
 
@@ -222,7 +222,7 @@ cmd({
     react: "👑"
 },
 async(conn, mek, m, { args, isOwner, reply, botNumber, config }) => {
-    if (!isOwner) return reply("*YEH COMMAND SIRF MERE LIE HAI 😎*");
+    if (!isOwner) return reply("*THIS COMMAND IS ONLY FOR ME 😎*");
     const newPrefix = args[0];
 
     if (newPrefix) {
@@ -231,6 +231,6 @@ async(conn, mek, m, { args, isOwner, reply, botNumber, config }) => {
         
         await updateConfig('PREFIX', newPrefix, botNumber, config, reply);
     } else {
-        reply(`*ABHI PREFIX ❮ ${config.PREFIX} ❯ HAI ☺️*\nJIS BHI NISHAN AP BOT CHALANA CHAHTE HAI WO NISHAN SET KERE ESE 😊*\n*❮SETPREFIX . ! + _ -❯*\n*JO BHI APKA DIL KARE 😍❣️*`);
+        reply(`*Current prefix ❮ ${config.PREFIX} ❯ ☺️*\nSet any symbol you want to use to run the bot like this 😊*\n*❮SETPREFIX . ! + _ -❯*\n*Whatever you like 😍❣️*`);
     }
 });

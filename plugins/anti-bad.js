@@ -94,7 +94,7 @@ arslan({
 • ${prefix}antibad on kick - Kick on bad words
 • ${prefix}antibad off - Disable system
 
-💖 *Powered by ARSLAN-MD*`);
+💖 *Powered by MUZAMIL-XD*`);
     }
 
     // ─── TOGGLE ON ───
@@ -113,7 +113,7 @@ arslan({
 📌 *Action:* ${actionMsg}
 🔹 *Bad words will be filtered.*
 
-💖 Powered by ARSLAN-MD`);
+💖 Powered by MUZAMIL-XD`);
 
         await arslan.sendMessage(from, {
             text: `╭────────────────────◇
@@ -123,7 +123,7 @@ arslan({
 │✦ Action: ${actionMsg}
 │✦ Admin: @${mek.key.participant?.split('@')[0] || 'Unknown'}
 ╰────────────────────○
-*© Powered by ARSLAN-MD*`,
+*© Powered by MUZAMIL-XD*`,
             mentions: [mek.key.participant]
         });
 
@@ -136,7 +136,7 @@ arslan({
 
 📌 Bad words will no longer be filtered.
 
-💖 Powered by ARSLAN-MD`);
+💖 Powered by MUZAMIL-XD`);
     }
 });
 
@@ -226,7 +226,7 @@ arslan({
 👤 User: @${senderNumber}
 📊 Warn: ${warnCount}/${maxWarns}
 
-💖 Powered by ARSLAN-MD`;
+💖 Powered by MUZAMIL-XD`;
 
     await arslan.sendMessage(from, {
         text: warnMsg,
@@ -243,7 +243,7 @@ arslan({
 📌 Reason: Repeated bad words (${warnCount} warns)
 👤 User: @${senderNumber}
 
-💖 Powered by ARSLAN-MD`,
+💖 Powered by MUZAMIL-XD`,
                 mentions: [sender]
             });
             
@@ -255,4 +255,4 @@ arslan({
     }
 });
 
-console.log('🚫 ARSLAN-MD - Anti-Bad Words Plugin Loaded! 💖');
+console.log('🚫 MUZAMIL-XD - Anti-Bad Words Plugin Loaded! 💖');

@@ -36,8 +36,8 @@ async function react(sock, mek, emoji) {
 // 📦 Stylish info box
 function xBox(data) {
     return `
-‎*╔ஜ۩▒█ *ᴀʀꜱʟᴀɴ X ᴍᴅ* █▒۩ஜ╗*
-*|* *_ᴀʀꜱʟᴀɴ-ᴍᴅ xᴠɪᴅᴇᴏs_* 
+‎*╔ஜ۩▒█ *MUZAMIL-XD* █▒۩ஜ╗*
+*|* *_мʋʓαмιℓ xᴠɪᴅᴇᴏs_* 
 *|┉┉┉┉◉◉◉┉┉┉┉┉┉┉━•⟢*
 *|▸ 📌 ᴛɪᴛʟᴇ:* ${data.title}
 *|▸ ⏱ ᴅᴜʀᴀᴛɪᴏɴ:* ${data.duration || "N/A"}
@@ -102,7 +102,7 @@ cmd({
 
         // 📦 Info box
         await sock.sendMessage(m.chat, {
-            image: { url: videoData.thumb || "https://files.catbox.moe/16i1l7.jpg" },
+            image: { url: videoData.thumb || "https://i.ibb.co/Y7Jyd15p/1000039546.png" },
             caption: xBox(videoData)
         }, { quoted: fakevCard });
 
@@ -116,8 +116,8 @@ cmd({
             mimetype: "video/mp4",
             fileName: `${videoData.title}.mp4`,
             caption: `
-‎*╔ஜ۩▒█ *ᴀʀꜱʟᴀɴ X ᴍᴅ* █▒۩ஜ╗*
-‎*| 𝙿𝙾𝚆𝙴𝚁𝙴𝙳 𝙱𝚈 *ᴀʀꜱʟᴀɴ-ᴍᴅ* 
+‎*╔ஜ۩▒█ *MUZAMIL-XD* █▒۩ஜ╗*
+‎*| Muzamil Khan* 
 ‎*╰━━━━━━━━━━━━━━━━━━⊷*`
         }, { quoted: fakevCard });
 

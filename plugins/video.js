@@ -31,7 +31,7 @@ const vid = search.videos[0]
 /* 🎨 Preview */
 
 const caption = `
-╔ஜ۩▒█ ᴀʀꜱʟᴀɴ X ᴍᴅ █▒۩ஜ╗
+╔ *MUZAMIL-XD* ╗
 ┃🎬 VIDEO FOUND
 ┃📌 Title: ${vid.title}
 ┃⏱️ Duration: ${vid.timestamp}
@@ -68,7 +68,7 @@ const title = res.data.result.metadata.title || vid.title
 await conn.sendMessage(from,{
 video:{url:videoUrl},
 mimetype:"video/mp4",
-caption:`🎬 *${title}*\n\n> © ᴀʀꜱʟᴀɴ-ᴍᴅ`
+caption:`🎬 *${title}*\n\n> © мʋʓαмιℓ-ƵƉ`
 },{quoted:fakevCard})
 
 }catch(err){

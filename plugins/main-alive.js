@@ -32,7 +32,7 @@ async (conn, mek, m, { from, sender, reply }) => {
 *┃👑 TOTAL CMNDS :❯ ❮ ${totalCmds} ❯*
 *┃👑 UPTIME :❯ ${uptime()}*
 *┗──────────────⊷*
-*👑 ARSLAN-MD WHATSAPP BOT 👑*`;
+*👑 MUZAMIL-XD WHATSAPP BOT 👑*`;
 
         await conn.sendMessage(from, { 
             text: status,

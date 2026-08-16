@@ -14,13 +14,13 @@ async (conn, mek, m, { args, reply }) => {
     try {
         if (!args[0]) {
             return reply(
-                "*🥺 APKO APKE NAME KA STICKER BANANA HAI*\n\n" +
-                "*Use:* `.attp APKA NAME`\n\n" +
+                "*🥺 YOU WANT TO MAKE A STICKER OF YOUR NAME*\n\n" +
+                "*Use:* `.attp YOUR NAME`\n\n" +
                 "*Example:*\n.attp Bilal"
             )
         }
 
-        reply("*✨ APKA STICKER BAN RAHA HAI*\n*THORA SA INTAZAR KARE...☺️*")
+        reply("*✨ YOUR STICKER IS BEING MADE*\n*PLEASE WAIT A MOMENT...☺️*")
 
         const text = encodeURIComponent(args.join(" "))
         const gifBuffer = await fetchGif(
@@ -37,6 +37,6 @@ async (conn, mek, m, { args, reply }) => {
 
     } catch (e) {
         console.log("ATTP ERROR:", e)
-        reply("*❌ STICKER BANANE ME ERROR AYA 🥺*")
+        reply("*❌ ERROR WHILE MAKING STICKER 🥺*")
     }
 })

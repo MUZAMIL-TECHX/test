@@ -32,7 +32,7 @@ cmd({
         const date = moment().tz("Africa/Kampala").format("dddd, MMMM Do YYYY");
 
         const caption = `
-╭━━━《 *ᴀʀꜱʟᴀɴ-ᴍᴅ* 》━━━┈⊷
+╭━━━《 *MUZAMIL-XD* 》━━━┈⊷
 ┃ ✦╭─────────────┈⊷
 ┃ ✦│▸ Total Commands : *${totalCommands}*
 ┃ ✦│▸ Time           : ${time}
@@ -44,15 +44,15 @@ ${menuText}
 `.trim();
 
         await conn.sendMessage(m.chat, {
-            image: { url: "https://files.catbox.moe/prkkzj.png" },
+            image: { url: "https://i.ibb.co/Y7Jyd15p/1000039546.png" },
             caption,
             contextInfo: {
                 forwardingScore: 999,
                 isForwarded: true,
                 mentionedJid: [m.sender],
                 forwardedNewsletterMessageInfo: {
-                    newsletterJid: "120363348739987203@newsletter",
-                    newsletterName: "𝘼𝙧𝙨𝙡𝙖𝙣-𝙈𝘿 𝙈𝙞𝙣𝙞 𝙑²",
+                    newsletterJid: "120363426106687970@newsletter",
+                    newsletterName: "MUZAMIL-XD",
                     serverMessageId: 2,
                 },
             },

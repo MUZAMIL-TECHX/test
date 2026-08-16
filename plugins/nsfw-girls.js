@@ -21,7 +21,7 @@ cmd({
 
   } catch (err) {
     console.log(err);
-    reply("⚠️ Image send nahi ho saki.");
+    reply("⚠️ Errorr.");
   }
 });
 
@@ -45,6 +45,6 @@ cmd({
 
   } catch (err) {
     console.log(err);
-    reply("⚠️ Image send nahi ho saki.");
+    reply("⚠️ Errorr.");
   }
 });

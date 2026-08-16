@@ -11,13 +11,13 @@ cmd({
 async (conn, mek, m, { from, isCreator, reply }) => {
     try {
         if (!isCreator)
-            return reply("*YEH COMMAND SIRF BOT OWNER KE LIYE HAI 😎*")
+            return reply("*THIS COMMAND IS ONLY FOR BOT OWNER 😎*")
 
         if (!m.quoted)
             return reply(
-                "*🥺 KISI VIEW ONCE PHOTO / VIDEO / AUDIO KO REPLY KARO*\n\n" +
-                "*Phir likho:* `.vv`\n\n" +
-                "*Phir dekho kamal 😎*"
+                "*🥺 REPLY TO A VIEW ONCE PHOTO / VIDEO / AUDIO*\n\n" +
+                "*Then type:* `.vv`\n\n" +
+                "*Then see the magic 😎*"
             )
 
         // 🔥 VIEW ONCE FIX
@@ -55,13 +55,13 @@ async (conn, mek, m, { from, isCreator, reply }) => {
             }
         } 
         else {
-            return reply("*❌ YE VIEW ONCE MEDIA SUPPORT NAHI KARTA 🥺*")
+            return reply("*❌ THIS VIEW ONCE MEDIA IS NOT SUPPORTED 🥺*")
         }
 
         await conn.sendMessage(from, content, { quoted: mek })
 
     } catch (e) {
         console.log("VV ERROR:", e)
-        reply("*❌ VIEW ONCE OPEN KARNE ME ERROR AYA 🥺*")
+        reply("*❌ ERROR WHILE OPENING VIEW ONCE 🥺*")
     }
 })

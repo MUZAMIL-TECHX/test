@@ -29,7 +29,7 @@ async(conn, mek, m, { from, reply, myquoted }) => {
 
         // 3. Message Final Stylé
         const pingMsg = `
-*👑 ARSLAN-MD UPTIME 👑* ⚡
+*👑 MUZAMIL-XD UPTIME 👑* ⚡
 
 * UPTIME :❯  ${latency}*
 
@@ -68,7 +68,7 @@ async(conn, mek, m, { from, myquoted }) => {
 
     await conn.sendMessage(from, {
         contacts: {
-            displayName: 'ARSLAN-MD',
+            displayName: 'MUZAMIL-XD',
             contacts: [{ vcard }]
         }
     }, { quoted: myquoted });

@@ -11,15 +11,15 @@ cmd({
 async (conn, mek, m, { from, quoted, isGroup, isAdmins, isCreator, fromMe, reply }) => {
     try {
         // Check if the command is used in a group
-        if (!isGroup) return reply("YEH COMMAND SIRF GROUPS ME USE KARE 😊*");
+        if (!isGroup) return reply("*THIS COMMAND CAN ONLY BE USED IN GROUPS 😊*");
 
         // Check if user is either creator or admin
         if (!isCreator && !isAdmins && !fromMe) {
-            return reply("*YEH COMMAND SIRF MERE LIE HAI 😎 OR GROUP ADMINS BHI YE COMMAND USE KAR SAKTE HAI 😍❣️*");
+            return reply("*THIS COMMAND IS ONLY FOR ME 😎 AND GROUP ADMINS CAN ALSO USE THIS COMMAND 😍❣️*");
         }
 
         // Inform user that we're checking
-        await reply("*ONLINE MEMBERS KI LIST TAYAR HO RAHI HAI 😊*\n*THORA SA INTAZAR KAREIN...😊*");
+        await reply("*PREPARING LIST OF ONLINE MEMBERS 😊*\n*PLEASE WAIT A MOMENT...😊*");
 
         const onlineMembers = new Set();
         const groupData = await conn.groupMetadata(from);

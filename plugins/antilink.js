@@ -108,7 +108,7 @@ arslan({
 • ${prefix}antilink on kick - Kick on links
 • ${prefix}antilink off - Disable system
 
-💖 *Powered by ARSLAN-MD*`);
+💖 *Powered by MUZAMIL-XD*`);
     }
 
     // ─── TOGGLE ON ───
@@ -127,7 +127,7 @@ arslan({
 📌 *Action:* ${actionMsg}
 🔹 *Links will be filtered (except allowed domains).*
 
-💖 Powered by ARSLAN-MD`);
+💖 Powered by MUZAMIL-XD`);
 
         await arslan.sendMessage(from, {
             text: `╭────────────────────◇
@@ -137,7 +137,7 @@ arslan({
 │✦ Action: ${actionMsg}
 │✦ Admin: @${mek.key.participant?.split('@')[0] || 'Unknown'}
 ╰────────────────────○
-*© Powered by ARSLAN-MD*`,
+*© Powered by MUZAMIL-XD*`,
             mentions: [mek.key.participant]
         });
 
@@ -224,7 +224,7 @@ arslan({
 👤 User: @${senderNumber}
 📊 Warn: ${warnCount}/${maxWarns}
 
-💖 Powered by ARSLAN-MD`;
+💖 Powered by MUZAMIL-XD`;
 
     await arslan.sendMessage(from, {
         text: warnMsg,
@@ -241,7 +241,7 @@ arslan({
 📌 Reason: Repeated links (${warnCount} warns)
 👤 User: @${senderNumber}
 
-💖 Powered by ARSLAN-MD`,
+💖 Powered by MUZAMIL-XD`,
                 mentions: [sender]
             });
             
@@ -253,4 +253,4 @@ arslan({
     }
 });
 
-console.log('🔗 ARSLAN-MD - Anti-Link Plugin Loaded! 💖');
+console.log('🔗 MUZAMIL-XD - Anti-Link Plugin Loaded! 💖');

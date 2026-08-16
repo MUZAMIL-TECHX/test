@@ -35,8 +35,8 @@ cmd({
                 [item.type === 'video' ? 'video' : 'image']: { url: item.url },
                 caption: `‎*_ɪɴsᴛᴀɢʀᴀᴍ ᴅᴏᴡɴʟᴏᴀᴅᴇʀ_*
 
-‎╔ஜ۩▒█ *ᴀʀꜱʟᴀɴ X ᴍᴅ* █▒۩ஜ╗
-‎*|* 𝙿𝙾𝚆𝙴𝚁𝙴𝙳 𝙱𝚈 *ᴀʀꜱʟᴀɴ-ᴍᴅ* 
+‎╔ஜ۩▒█ *MUZAMIL-XD* █▒۩ஜ╗
+‎*|* 𝙿𝙾𝚆𝙴𝚁𝙴𝙳 𝙱𝚈 *MUZAMIL-XD* 
 ‎*╰━━━━━━━━━━━━━━━━━━⊷*
 ‎`
             }, { quoted: fakevCard });
@@ -92,8 +92,8 @@ cmd({
       video: videoBuffer,
       caption: `*_ɪɴsᴛᴀɢʀᴀᴍ ᴅᴏᴡɴʟᴏᴀᴅᴇʀ_*
 
-‎‎╔ஜ۩▒█ *ᴀʀꜱʟᴀɴ X ᴍᴅ* █▒۩ஜ╗
-‎*|* 𝙿𝙾𝚆𝙴𝚁𝙴𝙳 𝙱𝚈 *ᴀʀꜱʟᴀɴ-ᴍᴅ* 
+‎‎╔ஜ۩▒█ *MUZAMIL-XD* █▒۩ஜ╗
+‎*|* 𝙿𝙾𝚆𝙴𝚁𝙴𝙳 𝙱𝚈 *MUZAMIL-XD* 
 ‎*╰━━━━━━━━━━━━━━━━━━⊷*`
     }, { quoted: fakevCard });
 
@@ -140,11 +140,11 @@ cmd({
     const likes = metadata.like || 0;
     const comments = metadata.comment || 0;
 
-    await reply('ᴜᴘʟᴏᴀᴅɪɴɢ ʏᴏᴜʀ ᴠɪᴅᴇᴏ ᴡᴀɪᴛ...');
+    await reply('Uploading your video, please wait...');
 
     await conn.sendMessage(from, {
       video: { url: videoUrl },
-      caption: `📥 *Instagram Reel Downloader*\n👤 *Author:* ${author}\n💬 *Caption:* ${caption}\n❤️ *Likes:* ${likes} | 💭 *Comments:* ${comments}\n\n> ᴘᴏᴡᴇʀᴇᴅ ʙʏ ☬༒ᴀʀꜱʟᴀɴ-ᴍᴅ༒☬`
+      caption: `📥 *Instagram Reel Downloader*\n👤 *Author:* ${author}\n💬 *Caption:* ${caption}\n❤️ *Likes:* ${likes} | 💭 *Comments:* ${comments}\n\n> ᴘᴏᴡᴇʀᴇᴅ ʙʏ MUZAMIL-XD`
     }, { quoted: fakevCard });
 
     await conn.sendMessage(from, { react: { text: '✅', key: m.key } });
@@ -154,6 +154,7 @@ cmd({
     await conn.sendMessage(from, { react: { text: '❌', key: m.key } });
   }
 });
+
 cmd({
     pattern: "ig3",
     alias: ["insta3", "instagram3"],
@@ -179,8 +180,8 @@ async (conn, mek, m, { from, args, q, reply }) => {
         const caption = 
 `*_ɪɴsᴛᴀɢʀᴀᴍ ᴅᴏᴡɴʟᴏᴀᴅᴇʀ_*
 
-‎╔ஜ۩▒█ *ᴀʀꜱʟᴀɴ X ᴍᴅ* █▒۩ஜ╗
-‎*|* 𝙿𝙾𝚆𝙴𝚁𝙴𝙳 𝙱𝚈 *ᴀʀꜱʟᴀɴ-ᴍᴅ* 
+‎╔ஜ۩▒█ *MUZAMIL-XD* █▒۩ஜ╗
+‎*|* 𝙿𝙾𝚆𝙴𝚁𝙴𝙳 𝙱𝚈 *MUZAMIL-XD* 
 ‎*╰━━━━━━━━━━━━━━━━━━⊷*`;
         
         await conn.sendMessage(from, {

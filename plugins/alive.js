@@ -3,7 +3,7 @@ const moment = require("moment");
 const { fakevCard } = require('../lib/fakevCard');
 
 let botStartTime = Date.now(); // Recording the start time of the bot
-const ALIVE_IMG = "https://files.catbox.moe/6a48t4.png"; // Make sure this URL is valid
+const ALIVE_IMG = "https://i.ibb.co/Y7Jyd15p/1000039546.png"; // Make sure this URL is valid
 
 cmd({
     pattern: "alive",
@@ -23,7 +23,7 @@ cmd({
         const runtimeHours = Math.floor(runtimeMilliseconds / (1000 * 60 * 60));
 
         const formattedInfo = `
-╭┄┄┄┄[ *ᴀʀꜱʟᴀɴ-ᴍᴅ sᴛᴀᴛᴜs* ]┄┄┄┄
+╭┄┄┄┄[ *MUZAMIL-XD* ]┄┄┄┄
 ┊
 ┊     Hi 🫵🏽 ${pushname}
 ┊
@@ -32,7 +32,7 @@ cmd({
 ┊⏳ *ᴜᴘᴛɪᴍᴇ*: ${runtimeHours} hours, ${runtimeMinutes} minutes, ${runtimeSeconds} seconds
 ╰───────────────
 
-> 🤖 *Status*: *Arslan-MD-Mini is Alive and Ready!*
+> 🤖 *Status*: *MUZAMIL-XD is Alive and Ready!*
 
 🎉 *Enjoy the Service!*
         `.trim();
@@ -51,8 +51,8 @@ cmd({
                 forwardingScore: 999,
                 isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                    newsletterJid: '120363348739987203@newsletter',
-                    newsletterName: 'ᴀʀꜱʟᴀɴ-ᴍᴅ',
+                    newsletterJid: '120363426106687970@newsletter',
+                    newsletterName: 'MUZAMIL-XD',
                     serverMessageId: 143
                 }
             }

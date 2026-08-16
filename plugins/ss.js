@@ -12,32 +12,83 @@ cmd({
   try {
     if (!q) {
       return reply(
-        "*🖥️ WEBSITE SCREENSHOT COMMAND*\n\n" +
-        "Use is tarah:\n" +
-        "*.screenshot <website URL>*\n\n" +
-        "Example:\n" +
-        "*.screenshot https://google.com*"
+        `╭━━━《 🖥️ *SCREENSHOT TOOL* 》━━━┈⊷
+┃
+┃ ✦ *Usage:* 
+┃ ✦ .screenshot <website URL>
+┃
+┃ ✦ *Example:*
+┃ ✦ .screenshot https://google.com
+┃
+┃ ✦ *Features:*
+┃ ✦ 📸 Full HD (1280x720)
+┃ ✦ 📄 Full page capture
+┃ ✦ ⚡ Fast processing
+┃
+╰━━━━━━━━━━━━┈⊷`
       );
     }
 
-    // ✅ API call to movanest.xyz for full HD screenshot (1280x720)
-    const apiUrl = `https:///movanest.xyz/v2/ssweb?url=${encodeURIComponent(q)}&width=1280&height=720&full_page=true`;
+    // Show processing
+    await conn.sendMessage(from, {
+      react: { text: "⏳", key: m.key }
+    });
+
+    await reply(`╭━━━《 🖥️ *CAPTURING SCREENSHOT* 》━━━┈⊷
+┃
+┃ ✦ *Website* : ${q}
+┃ ✦ *Status*  : ⏳ *Processing...*
+┃ ✦ *Quality* : 📸 *Full HD*
+┃
+╰━━━━━━━━━━━━┈⊷`);
+
+    // ✅ API call for full HD screenshot (1280x720)
+    const apiUrl = `https://movanest.xyz/v2/ssweb?url=${encodeURIComponent(q)}&width=1280&height=720&full_page=true`;
     const res = await axios.get(apiUrl, { timeout: 60000 });
 
     if (!res.data || !res.data.status || !res.data.screenshot) {
-      return reply("❌ Screenshot generate nahi hua / API se response nahi aaya");
+      await conn.sendMessage(from, {
+        react: { text: "❌", key: m.key }
+      });
+      return reply(`╭━━━《 ❌ *SCREENSHOT FAILED* 》━━━┈⊷
+┃
+┃ ✦ *Error* : No response from API
+┃ ✦ *Status* : ❌ *Failed*
+┃
+╰━━━━━━━━━━━━┈⊷`);
     }
 
     const screenshotUrl = res.data.screenshot;
 
-    // ✅ Send screenshot
+    // ✅ Send screenshot with stylish caption
     await conn.sendMessage(from, {
       image: { url: screenshotUrl },
-      caption: `🖥️ Screenshot of: ${q}`
+      caption: `╭━━━《 🖥️ *SCREENSHOT READY* 》━━━┈⊷
+┃
+┃ ✦ *Website* : ${q}
+┃ ✦ *Quality* : 📸 *Full HD*
+┃ ✦ *Size*    : 📐 *1280x720*
+┃ ✦ *Mode*    : 📄 *Full Page*
+┃ ✦ *Bot*     : 👑 *MUZAMIL-XD*
+┃
+╰━━━━━━━━━━━━┈⊷`
     }, { quoted: mek });
+
+    await conn.sendMessage(from, {
+      react: { text: "✅", key: m.key }
+    });
 
   } catch (err) {
     console.error("SCREENSHOT COMMAND ERROR:", err.message);
-    reply("❌ Screenshot generate nahi hua / API busy");
+    await conn.sendMessage(from, {
+      react: { text: "❌", key: m.key }
+    });
+    reply(`╭━━━《 ❌ *SCREENSHOT ERROR* 》━━━┈⊷
+┃
+┃ ✦ *Error* : ${err.message}
+┃ ✦ *Status* : ❌ *Failed*
+┃ ✦ *Tip* : Try again later
+┃
+╰━━━━━━━━━━━━┈⊷`);
   }
 });
