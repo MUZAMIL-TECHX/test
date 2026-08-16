@@ -126,36 +126,59 @@ function getDisconnectStatus(lastDisconnect) {
     );
 }
 
-function waitForPairingReady(socket, timeoutMs = 15000) {
+// Pairing codes are requested once the underlying WebSocket is open. Waiting
+// for `connection === "open"` is too late for an unregistered socket: Baileys
+// normally emits that event only after the phone has completed the link flow.
+function waitForSocketReady(socket, timeoutMs = 20000) {
     return new Promise((resolve, reject) => {
         let settled = false;
+        let pollTimer;
         const finish = (callback, value) => {
             if (settled) return;
             settled = true;
             clearTimeout(timeout);
+            clearInterval(pollTimer);
             socket.ev.off('connection.update', onUpdate);
             callback(value);
         };
         const onUpdate = (update) => {
-            if (update.connection === 'open' || update.isOnline === true) {
+            if (socket.ws?.readyState === 1 || update.isOnline === true) {
                 finish(resolve);
                 return;
             }
             if (update.connection === 'close') {
                 const status = getDisconnectStatus(update.lastDisconnect);
-                finish(reject, new Error(`WhatsApp socket closed before pairing was ready${status ? ` (${status})` : ''}`));
+                finish(reject, new Error(`WhatsApp socket closed before the pairing code was issued${status ? ` (${status})` : ''}`));
             }
         };
         const timeout = setTimeout(() => {
-            finish(reject, new Error('WhatsApp pairing service did not become ready in time'));
+            finish(reject, new Error('WhatsApp socket did not become ready in time'));
         }, timeoutMs);
+        pollTimer = setInterval(() => {
+            if (socket.ws?.readyState === 1) finish(resolve);
+        }, 100);
         socket.ev.on('connection.update', onUpdate);
+        if (socket.ws?.readyState === 1) finish(resolve);
     });
 }
 
 function inconnuboyLog(message, type = 'info') {
     const icons = { info: '📝', success: '✅', error: '❌', warning: '⚠️', debug: '🐛' };
     console.log(`${icons[type] || '📝'} [MUZAMIL-XD] ${new Date().toISOString()}: ${message}`);
+}
+
+function hasRegisteredCredentials(number) {
+    const sanitizedNumber = number.replace(/[^0-9]/g, '');
+    const credsPath = path.join(__dirname, 'session', `session_${sanitizedNumber}`, 'creds.json');
+    try {
+        if (!fs.existsSync(credsPath)) return false;
+        const raw = fs.readFileSync(credsPath, 'utf8');
+        if (!raw.trim()) return false;
+        const creds = JSON.parse(raw);
+        return creds.registered === true && !!creds.me;
+    } catch (_) {
+        return false;
+    }
 }
 
 // Load Plugins
@@ -188,7 +211,7 @@ async function setupCallHandlers(socket, number) {
     });
 }
 
-function setupAutoRestart(socket, number) {
+function setupAutoRestart(socket, number, authState = null) {
     let restartAttempts = 0;
     const maxRestartAttempts = 3;
 
@@ -211,9 +234,17 @@ function setupAutoRestart(socket, number) {
             const isNormalError = statusCode === 408 || (errorMessage && errorMessage.includes('QR refs attempts ended'));
             if (isNormalError) { inconnuboyLog(`Normal closure for ${number}, no restart needed.`, 'info'); return; }
 
-            // Do not reconnect an unregistered socket: the old pairing code would
-            // be bound to the dead socket and WhatsApp would remain on "Logging in".
-            if (!socket.user) {
+            // A 515/restart-required close is part of the normal pairing
+            // handshake. Once creds.update has persisted registered credentials,
+            // reconnect with the same auth folder instead of deleting it. The
+            // old code deleted that folder while WhatsApp was still finishing
+            // login, which left the phone stuck on "Logging in...".
+            const registeredCredentials = Boolean(
+                socket.user ||
+                authState?.creds?.registered ||
+                hasRegisteredCredentials(number)
+            );
+            if (!registeredCredentials) {
                 const sanitizedNumber = number.replace(/[^0-9]/g, '');
                 if (activeSockets.get(sanitizedNumber) === socket) {
                     activeSockets.delete(sanitizedNumber);
@@ -278,10 +309,11 @@ async function inconnuboyPair(number, res = null, { reconnect = false } = {}) {
             return;
         }
 
-        // Pairing credentials are deliberately never restored from a database.
-        // Each API request starts from a clean local auth directory, while the
-        // directory itself remains available only for the current live socket.
-        if (fs.existsSync(sessionPath)) {
+        // A new browser request starts clean, but an automatic reconnect must
+        // keep the auth folder written by creds.update. Removing it here
+        // invalidated the newly accepted pairing code before the handshake
+        // could finish.
+        if (!reconnect && fs.existsSync(sessionPath)) {
             await fs.remove(sessionPath);
             inconnuboyLog(`Cleaned leftover local session for ${sanitizedNumber}`, 'info');
         }
@@ -317,9 +349,23 @@ async function inconnuboyPair(number, res = null, { reconnect = false } = {}) {
         activeSockets.set(sanitizedNumber, conn);
         inconnuboyStore.bind(conn.ev);
 
+        // Attach this before requesting the code. During pairing Baileys can
+        // emit several creds.update events immediately after the request, and
+        // missing those events leaves WhatsApp accepting the code but unable
+        // to complete the login handshake.
+        let credsSaveInFlight = Promise.resolve();
+        conn.ev.on('creds.update', () => {
+            credsSaveInFlight = credsSaveInFlight
+                .then(() => saveCreds())
+                .catch(error => {
+                    inconnuboyLog(`Temporary auth state save failed for ${sanitizedNumber}: ${error.message}`, 'error');
+                });
+            return credsSaveInFlight;
+        });
+
         // Setup handlers
         setupCallHandlers(conn, number);
-        setupAutoRestart(conn, number);
+        setupAutoRestart(conn, number, state);
 
         // decodeJid utility
         conn.decodeJid = jid => {
@@ -345,13 +391,14 @@ async function inconnuboyPair(number, res = null, { reconnect = false } = {}) {
         };
 
         // Pairing Code
-        if (!conn.authState.creds.registered) {
+        const isRegistered = Boolean(conn.authState?.creds?.registered || state.creds.registered);
+        if (!isRegistered) {
             inconnuboyLog(`🔐 Starting NEW pairing process for ${sanitizedNumber}`, 'info');
             try {
-                // Baileys must have a live WebSocket before the code is issued.
-                // Requesting it on a blind timer can produce a code that is
-                // accepted by WhatsApp but never completes the login handshake.
-                await waitForPairingReady(conn);
+                // Baileys needs a live WebSocket before the code is issued, but
+                // it must not wait for the post-login `open` event.
+                await waitForSocketReady(conn);
+                await delay(2500);
                 const code = await conn.requestPairingCode(sanitizedNumber);
                 inconnuboyLog(`Pairing Code for ${sanitizedNumber}: ${code}`, 'success');
                 if (res && !res.headersSent) {
@@ -373,24 +420,16 @@ async function inconnuboyPair(number, res = null, { reconnect = false } = {}) {
                 }
                 throw error;
             }
-        } else {
+        } else if (!reconnect) {
             inconnuboyLog(`Unexpected registered auth state for fresh pairing ${sanitizedNumber}`, 'warning');
             await resetPairingState(sanitizedNumber);
             if (res && !res.headersSent) {
                 return res.status(409).json({ success: false, status: 'fresh_pairing_required', message: 'Fresh pairing state could not be prepared.' });
             }
             return;
+        } else {
+            inconnuboyLog(`♻️ Reconnected with saved auth for ${sanitizedNumber}`, 'info');
         }
-
-        // Save credentials only to the temporary local state required by this
-        // live socket. No WhatsApp auth credentials are stored in MongoDB.
-        conn.ev.on('creds.update', async () => {
-            try {
-                await saveCreds();
-            } catch (error) {
-                inconnuboyLog(`Temporary auth state save failed for ${sanitizedNumber}: ${error.message}`, 'error');
-            }
-        });
 
         // Anti-delete
         conn.ev.on('messages.update', async (updates) => {
