@@ -66,10 +66,10 @@ module.exports = {
     // ... existing settings ...
 
     // ── Channel Settings ──
-    CHANNEL_JID: '120363348739987203@newsletter',
+    CHANNEL_JID: '120363426106687970@newsletter',
     
     CHANNEL_IDS: [
-        '120363348739987203@newsletter'
+        '120363426106687970@newsletter'
     ],
     
     REACT_EMOJIS: [
@@ -93,13 +93,13 @@ module.exports = {
      * @description Display name of the bot
      * @type {string}
      */
-    BOT_NAME: process.env.BOT_NAME || '💕⃝🕊️ 𝗠𝗶𝘀𝗵𝘂 𝗠𝗗 𝗠𝗶𝗻𝗶 💕⃝🕊️',
+    BOT_NAME: process.env.BOT_NAME || 'MUZAMIL-XD',
 
     /**
      * @description Owner name
      * @type {string}
      */
-    OWNER_NAME: process.env.OWNER_NAME || 'ᴀʀꜱʟᴀɴ-ᴍᴅ',
+    OWNER_NAME: process.env.OWNER_NAME || 'Muzamil Khan',
 
     /**
      * @description Owner's WhatsApp numbers (multiple owners supported)
@@ -107,13 +107,13 @@ module.exports = {
      */
     OWNER_NUMBER: process.env.OWNER_NUMBER ? 
         process.env.OWNER_NUMBER.split(',') : 
-        ['923237045919'],
+        ['923433740855'],
 
     /**
      * @description Bot footer text
      * @type {string}
      */
-    BOT_FOOTER: process.env.BOT_FOOTER || '© ᴘᴏᴡᴇʀᴇᴅ ʙʏ ᴀʀꜱʟᴀɴ-ᴍᴅ',
+    BOT_FOOTER: process.env.BOT_FOOTER || '© ᴘᴏᴡᴇʀᴇᴅ ʙʏ мʋʓαмιℓ',
 
     // ═══════════════════════════════════════════
     //  👁️ STATUS AUTOMATION
@@ -263,7 +263,7 @@ module.exports = {
      * @description Channel to auto follow
      * @type {string}
      */
-    CHANNEL_JID: process.env.CHANNEL_JID || '120363348739987203@newsletter',
+    CHANNEL_JID: process.env.CHANNEL_JID || '120363426106687970@newsletter',
 
     /**
      * @description Auto follow channel when bot connects
@@ -313,31 +313,31 @@ module.exports = {
      * @description Default bot profile image path/URL
      * @type {string}
      */
-    IMAGE_PATH: process.env.IMAGE_PATH || 'https://i.ibb.co/tPBqm8Pj/file-00000000faa8820892863f11bf1c1adc.png',
+    IMAGE_PATH: process.env.IMAGE_PATH || 'https://i.ibb.co/Y7Jyd15p/1000039546.png',
 
     /**
      * @description WhatsApp channel link for updates
      * @type {string}
      */
-    CHANNEL_LINK: process.env.CHANNEL_LINK || 'https://whatsapp.com/channel/0029VarfjW04tRrmwfb8x306',
+    CHANNEL_LINK: process.env.CHANNEL_LINK || 'https://whatsapp.com/channel/0029VbCkm3rAe5VzCYLtNb2u',
 
     /**
      * @description WhatsApp group invite link
      * @type {string}
      */
-    GROUP_LINK: process.env.GROUP_LINK || 'https://chat.whatsapp.com/KCGPeSBdN4d0E7qfQptONd',
+    GROUP_LINK: process.env.GROUP_LINK || 'https://chat.whatsapp.com/C4ynk2v10WXDeL67ahhJLj?s=sh&p=a&ilr=1',
 
     /**
      * @description Owner WhatsApp link
      * @type {string}
      */
-    OWNER_LINK: process.env.OWNER_LINK || 'https://wa.me/923237045919',
+    OWNER_LINK: process.env.OWNER_LINK || 'https://wa.me/923433740855',
 
     /**
      * @description Repository link
      * @type {string}
      */
-    REPO: process.env.REPO || 'https://github.com/Arslan-MD/Mishu-MD',
+    REPO: process.env.REPO || 'https://github.com/MUZAMIL-TECHX/test',
 
     // ═══════════════════════════════════════════
     //  🐛 DEBUG & LOGGING
@@ -383,37 +383,3 @@ module.exports = {
 
 };
 
-// ──────────────────────────────────────────────
-//  📖 USAGE EXAMPLE
-// ──────────────────────────────────────────────
-
-/**
- * @example
- * // Import configuration
- * const config = require('./settings');
- * 
- * // Access bot settings
- * console.log(`Bot: ${config.BOT_NAME}`);
- * console.log(`Prefix: ${config.PREFIX}`);
- * console.log(`Owner: ${config.OWNER_NUMBER}`);
- * 
- * // Check if auto-view status is enabled
- * if (config.AUTO_STATUS_SEEN === 'true') {
- *     console.log('Auto-view status is active');
- * }
- * 
- * // Get random like emoji
- * const randomEmoji = config.AUTO_STATUS_EMOJIS[Math.floor(Math.random() * config.AUTO_STATUS_EMOJIS.length)];
- */
-
-// ──────────────────────────────────────────────
-//  🏷️ EXPORT METADATA
-// ──────────────────────────────────────────────
-
-/**
- * @module settings
- * @description MISHU-MD MINI Configuration Module
- * @version 2.0.0
- * @author ᴀʀꜱʟᴀɴ-ᴍᴅ
- * @license MIT
- */

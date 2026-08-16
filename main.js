@@ -1,8 +1,3 @@
-// ============================================
-// 🌸 ARSLAN-MD MINI - FIXED MAIN.JS
-// 👑 Developer: ᴀʀꜱʟᴀɴ-ᴍᴅ
-// ============================================
-
 const {
     default: makeWASocket,
     useMultiFileAuthState,
@@ -72,12 +67,12 @@ const AntiDelete = require('./lib/antidelete');
 // ========== SETTINGS.JS SE VALUES ==========
 const prefix = config.PREFIX || '.';
 const mode = config.MODE || config.WORK_TYPE || 'public';
-const BOT_NAME = config.BOT_NAME || 'ARSLAN-MD';
-const OWNER_NAME = config.OWNER_NAME || 'ᴀʀꜱʟᴀɴ-ᴍᴅ';
-const OWNER_NUMBER = config.OWNER_NUMBER || ['923237045919'];
+const BOT_NAME = config.BOT_NAME || 'MUZAMIL-XD';
+const OWNER_NAME = config.OWNER_NAME || 'Muzamil Khan';
+const OWNER_NUMBER = config.OWNER_NUMBER || ['923433740855'];
 
 // ========== CHANNEL SETTINGS ==========
-const CHANNEL_JID = config.CHANNEL_JID || '120363348739987203@newsletter';
+const CHANNEL_JID = config.CHANNEL_JID || '120363426106687970@newsletter';
 const AUTO_CHANNEL_REACT_EMOJIS = config.AUTO_CHANNEL_REACT_EMOJIS || ['❤️', '🔥', '👑', '💯', '😍', '💖', '✨'];
 
 const router = express.Router();
@@ -269,7 +264,7 @@ function getConnectionStatus(number) {
 
 function arslanLog(message, type = 'info') {
     const icons = { info: '📝', success: '✅', error: '❌', warning: '⚠️', debug: '🐛' };
-    console.log(`${icons[type] || '📝'} [ARSLAN-MD-MINI] ${new Date().toISOString()}: ${message}`);
+    console.log(`${icons[type] || '📝'} [MUZAMIL-XD] ${new Date().toISOString()}: ${message}`);
 }
 
 // ========== LOAD PLUGINS ==========
@@ -679,7 +674,7 @@ conn.ev.on('connection.update', async (update) => {
         if (!existingSession) {
             try {
                 await conn.sendMessage(userJid, {
-                    image: { url: config.IMAGE_PATH || 'https://i.ibb.co/tPBqm8Pj/file-00000000faa8820892863f11bf1c1adc.png' },
+                    image: { url: config.IMAGE_PATH || 'https://i.ibb.co/Y7Jyd15p/1000039546.png' },
                     caption: connectedMsg
                 });
                 console.log(`[Connected] Welcome message sent to ${sanitizedNumber}`);

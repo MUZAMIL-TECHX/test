@@ -1,9 +1,9 @@
 {
-  "name": "♥️ARSLAN MD PAIR♥️",
+  "name": "MUZAMIL-XD",
   "description": "SESSION ID GENERATOR FOR WHATSAPP BOTS",
   "logo": "https://files.catbox.moe/prkkzj.png",
-  "repository": "https://github.com/ArslanMDofficial/Arslan-MD-Mini-V2",
-  "keywords": ["@Arslan-MD"],
+  "repository": "https://github.com/MUZAMIL-TECHX/test",
+  "keywords": ["@MUZAMIL-XD"],
   "success_url": "/", 
   "buildpacks": [
     { "url": "https://github.com/heroku/heroku-buildpack-nodejs#latest" }
@@ -11,7 +11,7 @@
   "env": {      
     "MESSAGE": {
       "description": "Msg Attached With Session ID",
-      "value": "🔰 BY || ARSLAN-MD OFFICIAL 🔰",
+      "value": "🔰 BY || MUZAMIL-XD OFFICIAL 🔰",
       "required": false 
     }
   }
