@@ -6,6 +6,7 @@ const {
     jidNormalizedUser,
     Browsers,
     DisconnectReason,
+    fetchLatestBaileysVersion,
     jidDecode,
     downloadContentFromMessage,
     getContentType,
@@ -44,6 +45,36 @@ connectdb();
 
 const activeSockets = new Map();
 const socketCreationTime = new Map();
+const socketSavePromises = new Map();
+let cachedBaileysVersion = null;
+let cachedBaileysVersionAt = 0;
+let baileysVersionRequest = null;
+const BAILEYS_VERSION_TTL = 6 * 60 * 60 * 1000;
+
+async function getBaileysVersion() {
+    const now = Date.now();
+    if (cachedBaileysVersion && now - cachedBaileysVersionAt < BAILEYS_VERSION_TTL) {
+        return cachedBaileysVersion;
+    }
+    if (baileysVersionRequest) return baileysVersionRequest;
+
+    baileysVersionRequest = (async () => {
+        try {
+            const { version } = await fetchLatestBaileysVersion();
+            cachedBaileysVersion = version;
+            cachedBaileysVersionAt = Date.now();
+            return version;
+        } catch (error) {
+            if (cachedBaileysVersion) return cachedBaileysVersion;
+            inconnuboyLog(`Baileys version lookup failed; using bundled version: ${error.message}`, 'warning');
+            return null;
+        } finally {
+            baileysVersionRequest = null;
+        }
+    })();
+
+    return baileysVersionRequest;
+}
 
 
 function createInconnuboyStore() {
@@ -90,13 +121,18 @@ async function resetPairingState(number) {
 
     if (socket) {
         try {
+            const savePromise = socketSavePromises.get(sanitizedNumber);
+            if (savePromise) await savePromise().catch(() => {});
             socket.ev.removeAllListeners();
-            await Promise.resolve(socket.ws?.close());
+            if (typeof socket.ws?.terminate === 'function') socket.ws.terminate();
+            else await Promise.resolve(socket.ws?.close());
+            await delay(500);
         } catch (error) {
             inconnuboyLog(`Previous socket cleanup warning for ${sanitizedNumber}: ${error.message}`, 'warning');
         }
         activeSockets.delete(sanitizedNumber);
         socketCreationTime.delete(sanitizedNumber);
+        socketSavePromises.delete(sanitizedNumber);
     }
 
     const sessionPath = path.join(__dirname, 'session', `session_${sanitizedNumber}`);
@@ -211,9 +247,9 @@ async function setupCallHandlers(socket, number) {
     });
 }
 
-function setupAutoRestart(socket, number, authState = null) {
+function setupAutoRestart(socket, number, authState = null, getCredsSavePromise = null) {
     let restartAttempts = 0;
-    const maxRestartAttempts = 3;
+    const maxRestartAttempts = Number.POSITIVE_INFINITY;
 
     socket.ev.on('connection.update', async (update) => {
         const { connection, lastDisconnect } = update;
@@ -227,18 +263,22 @@ function setupAutoRestart(socket, number, authState = null) {
                 const sanitizedNumber = number.replace(/[^0-9]/g, '');
                 activeSockets.delete(sanitizedNumber);
                 socketCreationTime.delete(sanitizedNumber);
+                socketSavePromises.delete(sanitizedNumber);
                 socket.ev.removeAllListeners();
+                await fs.remove(path.join(__dirname, 'session', `session_${sanitizedNumber}`)).catch(() => {});
                 return;
             }
-
-            const isNormalError = statusCode === 408 || (errorMessage && errorMessage.includes('QR refs attempts ended'));
-            if (isNormalError) { inconnuboyLog(`Normal closure for ${number}, no restart needed.`, 'info'); return; }
 
             // A 515/restart-required close is part of the normal pairing
             // handshake. Once creds.update has persisted registered credentials,
             // reconnect with the same auth folder instead of deleting it. The
             // old code deleted that folder while WhatsApp was still finishing
             // login, which left the phone stuck on "Logging in...".
+            // Wait for the serialized save queue first so a close event cannot
+            // race the final creds.update write.
+            if (getCredsSavePromise) {
+                try { await getCredsSavePromise(); } catch (_) {}
+            }
             const registeredCredentials = Boolean(
                 socket.user ||
                 authState?.creds?.registered ||
@@ -252,25 +292,30 @@ function setupAutoRestart(socket, number, authState = null) {
                 }
                 const sessionPath = path.join(__dirname, 'session', `session_${sanitizedNumber}`);
                 await fs.remove(sessionPath).catch(() => {});
+                socketSavePromises.delete(sanitizedNumber);
                 inconnuboyLog(`Pairing socket closed before login for ${number}; generate a fresh code.`, 'warning');
                 return;
             }
 
+            const isNormalError = statusCode === 408 || (errorMessage && errorMessage.includes('QR refs attempts ended'));
+            if (isNormalError) {
+                inconnuboyLog(`Registered session closed normally for ${number}; reconnecting with saved auth.`, 'info');
+            }
+
             if (restartAttempts < maxRestartAttempts) {
                 restartAttempts++;
-                inconnuboyLog(`Reconnecting ${number} (${restartAttempts}/${maxRestartAttempts}) in 10s...`, 'warning');
+                const reconnectDelay = Math.min(5000 * Math.min(restartAttempts, 12), 120000) + Math.floor(Math.random() * 3000);
+                inconnuboyLog(`Reconnecting ${number} in ${Math.ceil(reconnectDelay / 1000)}s (attempt ${restartAttempts})...`, 'warning');
                 const sanitizedNumber = number.replace(/[^0-9]/g, '');
                 if (activeSockets.get(sanitizedNumber) === socket) {
                     activeSockets.delete(sanitizedNumber);
                     socketCreationTime.delete(sanitizedNumber);
                 }
                 socket.ev.removeAllListeners();
-                await delay(10000);
+                await delay(reconnectDelay);
                 try {
                     await inconnuboyPair(number, null, { reconnect: true });
                 } catch (e) { inconnuboyLog(`Reconnection failed for ${number}: ${e.message}`, 'error'); }
-            } else {
-                inconnuboyLog(`Max restart attempts reached for ${number}.`, 'error');
             }
         }
         if (connection === 'open') { restartAttempts = 0; }
@@ -319,26 +364,30 @@ async function inconnuboyPair(number, res = null, { reconnect = false } = {}) {
         }
 
         const { state, saveCreds } = await useMultiFileAuthState(sessionPath);
+        const version = await getBaileysVersion();
         const logger = pino({ level: process.env.NODE_ENV === 'production' ? 'fatal' : 'debug' });
 
         const inconnuboyStore = createInconnuboyStore();
 
         const conn = makeWASocket({
+            ...(version ? { version } : {}),
             auth: {
                 creds: state.creds,
                 keys: makeCacheableSignalKeyStore(state.keys, logger),
             },
             printQRInTerminal: false,
             logger: pino({ level: "silent" }),
-            connectTimeoutMs: 60000,
-            defaultQueryTimeoutMs: 0,
-            keepAliveIntervalMs: 10000,
+            browser: Browsers.ubuntu('Chrome'),
+            connectTimeoutMs: 20000,
+            defaultQueryTimeoutMs: 15000,
+            keepAliveIntervalMs: 25000,
+            retryRequestDelayMs: 1500,
+            maxRetries: 3,
             emitOwnEvents: true,
             fireInitQueries: true,
             generateHighQualityLinkPreview: true,
             syncFullHistory: false,
             markOnlineOnConnect: false,
-            browser: Browsers.macOS('Safari'),
             getMessage: async (key) => {
                 const msg = await inconnuboyStore.loadMessage(key.remoteJid, key.id);
                 return msg && msg.message ? msg.message : { conversation: 'MUZAMIL-XD' };
@@ -362,10 +411,12 @@ async function inconnuboyPair(number, res = null, { reconnect = false } = {}) {
                 });
             return credsSaveInFlight;
         });
+        const getCredsSavePromise = () => credsSaveInFlight;
+        socketSavePromises.set(sanitizedNumber, getCredsSavePromise);
 
         // Setup handlers
         setupCallHandlers(conn, number);
-        setupAutoRestart(conn, number, state);
+        setupAutoRestart(conn, number, state, getCredsSavePromise);
 
         // decodeJid utility
         conn.decodeJid = jid => {
@@ -398,8 +449,12 @@ async function inconnuboyPair(number, res = null, { reconnect = false } = {}) {
                 // Baileys needs a live WebSocket before the code is issued, but
                 // it must not wait for the post-login `open` event.
                 await waitForSocketReady(conn);
-                await delay(2500);
-                const code = await conn.requestPairingCode(sanitizedNumber);
+                // Match backend-v9's stabilization window. A raw WS ready state
+                // can arrive before Baileys finishes its initial handshake.
+                await delay(3500);
+                const rawCode = await conn.requestPairingCode(sanitizedNumber);
+                const code = String(rawCode || '').replace(/-/g, '').match(/.{1,4}/g)?.join('-') || String(rawCode || '');
+                if (!code) throw new Error('Empty pairing code received');
                 inconnuboyLog(`Pairing Code for ${sanitizedNumber}: ${code}`, 'success');
                 if (res && !res.headersSent) {
                     res.json({
@@ -409,7 +464,7 @@ async function inconnuboyPair(number, res = null, { reconnect = false } = {}) {
                         number: sanitizedNumber,
                         message: 'Enter this code in WhatsApp > Linked devices > Link a device.',
                         repeatable: true,
-                        sessionPersistence: false
+                        sessionPersistence: 'local'
                     });
                 }
             } catch (error) {
@@ -681,9 +736,33 @@ function cleanupLocalAuthState() {
         try { socket.ws.close(); } catch (_) {}
         activeSockets.delete(number); socketCreationTime.delete(number);
     });
-    const sessionDir = path.join(__dirname, 'session');
-    if (fs.existsSync(sessionDir)) fs.emptyDirSync(sessionDir);
 }
+
+async function restoreSavedSessions() {
+    const sessionRoot = path.join(__dirname, 'session');
+    if (!fs.existsSync(sessionRoot)) return;
+
+    const savedNumbers = fs.readdirSync(sessionRoot)
+        .filter(name => /^\d{10,15}$/.test(name))
+        .filter(name => hasRegisteredCredentials(name));
+
+    for (const number of savedNumbers) {
+        if (activeSockets.has(number)) continue;
+        inconnuboyLog(`Restoring saved WhatsApp session for ${number}`, 'info');
+        try {
+            await inconnuboyPair(number, null, { reconnect: true });
+        } catch (error) {
+            inconnuboyLog(`Saved session restore failed for ${number}: ${error.message}`, 'error');
+        }
+        await delay(1500);
+    }
+}
+
+setTimeout(() => {
+    restoreSavedSessions().catch(error => {
+        inconnuboyLog(`Session restore scan failed: ${error.message}`, 'error');
+    });
+}, 3000);
 
 process.on('exit', cleanupLocalAuthState);
 process.on('SIGINT', () => {
