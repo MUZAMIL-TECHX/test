@@ -2,7 +2,7 @@
 
 const { cmd } = require('../inconnuboy');
 const config = require('../config');
-const converter = require('../lib/converter');
+const converter = require('../data/converter');
 
 // VoiceClip urls
 const voiceClips = [
