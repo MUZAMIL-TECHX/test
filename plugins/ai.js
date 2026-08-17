@@ -13,48 +13,36 @@ cmd({
     try {
         if (!q) {
             return reply(
-                `╔═══════════════════════════════════╗
-║     🤖 *AI CHAT ASSISTANT* 🤖     ║
-╠═══════════════════════════════════╣
-║                                   ║
-║  ✦ *Command Usage:*              ║
-║  ✦ .ai <your question>           ║
-║  ✦ .darkai <your question>       ║
-║  ✦ .workai <your question>       ║
-║  ✦ .ask <your question>          ║
-║                                   ║
-║  ✦ *Examples:*                   ║
-║  ✦ .ai What is AI?               ║
-║  ✦ .darkai Who are you?          ║
-║  ✦ .workai Help me with code     ║
-║  ✦ .ask What is love?            ║
-║                                   ║
-║  ✦ *Features:*                   ║
-║  ✦ 🧠 Smart AI responses         ║
-║  ✦ ⚡ Fast processing             ║
-║  ✦ 🌐 24/7 Available             ║
-║  ✦ 🎯 Accurate answers           ║
-║                                   ║
-╚═══════════════════════════════════╝`
+`*_MUZAMIL-XD_*
+
+🤖 *AI CHAT ASSISTANT*
+
+📌 *Usage:*
+• .ai <your question>
+• .darkai <your question>
+• .workai <your question>
+• .ask <your question>
+
+📝 *Examples:*
+• .ai What is AI?
+• .darkai Who are you?
+• .workai Help me with code
+• .ask What is love?
+
+✨ *Features:*
+• 🧠 Smart AI responses
+• ⚡ Fast processing
+• 🌐 24/7 Available
+• 🎯 Accurate answers
+
+> Powered By MUZAMIL-XD`
             );
         }
 
-        // Show processing
+        // Show processing reaction
         await conn.sendMessage(from, {
             react: { text: "⏳", key: m.key }
         });
-
-        await reply(
-            `╔═══════════════════════════════════╗
-║     🧠 *PROCESSING REQUEST* 🧠   ║
-╠═══════════════════════════════════╣
-║                                   ║
-║  ✦ *Question* : ${q.substring(0, 30)}${q.length > 30 ? "..." : ""}
-║  ✦ *Status* : ⏳ *Thinking*      ║
-║  ✦ *Mode*   : 🤖 *AI Assistant*  ║
-║                                   ║
-╚═══════════════════════════════════╝`
-        );
 
         // API Call
         const apiUrl = `https://wormgpt.freeapihub.workers.dev/chat?q=${encodeURIComponent(q)}`;
@@ -95,30 +83,29 @@ cmd({
                 react: { text: "❌", key: m.key }
             });
             return reply(
-                `╔═══════════════════════════════════╗
-║     ❌ *NO RESPONSE* ❌         ║
-╠═══════════════════════════════════╣
-║                                   ║
-║  ✦ *Question* : ${q.substring(0, 30)}${q.length > 30 ? "..." : ""}
-║  ✦ *Status* : ❌ *Failed*       ║
-║                                   ║
-║  ═══════════════════════════════  ║
-║  💡 *Tips:*                       ║
-║  ✦ Try asking differently        ║
-║  ✦ Use shorter questions         ║
-║  ✦ Try again in a moment         ║
-║  ✦ Check your internet           ║
-║                                   ║
-╚═══════════════════════════════════╝`
+`*_MUZAMIL-XD_*
+
+❌ *No Response*
+
+📌 *Question:* ${q.substring(0, 30)}${q.length > 30 ? "..." : ""}
+💡 *Tips:*
+• Try asking differently
+• Use shorter questions
+• Try again in a moment
+• Check your internet
+
+> Powered By MUZAMIL-XD`
             );
         }
 
-        // Format the response with new style
+        // Format the response
         const formattedAnswer = answer.length > 1000 ? answer.substring(0, 1000) + "\n\n...(truncated)" : answer;
 
         const responseText = 
 `*_MUZAMIL-XD_*
+
 ${formattedAnswer}
+
 > Powered By MUZAMIL-XD`;
 
         // Send response
@@ -148,22 +135,21 @@ ${formattedAnswer}
         }
 
         reply(
-            `╔═══════════════════════════════════╗
-║     ❌ *AI SYSTEM ERROR* ❌     ║
-╠═══════════════════════════════════╣
-║                                   ║
-║  ✦ *Error* : ${errorMessage}       ║
-║  ✦ *Status* : 🔴 *Offline*       ║
-║                                   ║
-║  ═══════════════════════════════  ║
-║  💡 *Solutions:*                  ║
-║  ✦ Check your internet           ║
-║  ✦ Try again in 5 minutes        ║
-║  ✦ Use different wording         ║
-║  ✦ Try shorter questions         ║
-║  ✦ Use .ai for general chat      ║
-║                                   ║
-╚═══════════════════════════════════╝`
+`*_MUZAMIL-XD_*
+
+❌ *AI System Error*
+
+📌 *Error:* ${errorMessage}
+🔴 *Status:* Offline
+
+💡 *Solutions:*
+• Check your internet
+• Try again in 5 minutes
+• Use different wording
+• Try shorter questions
+• Use .ai for general chat
+
+> Powered By MUZAMIL-XD`
         );
     }
 });
