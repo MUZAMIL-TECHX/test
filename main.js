@@ -33,7 +33,10 @@ const {
 } = require('./lib/database');
 
 // ========== ANTI-DELETE FIXED IMPORT ==========
-const { handleAntidelete } = require('./lib/antidelete');
+const {
+    handleAntidelete,
+    rememberMessages
+} = require('./lib/antidelete');
 
 // ========== 🆕 SYSTEM FUNCTIONS (Channel Follow + React) ==========
 const { 
@@ -700,14 +703,7 @@ async function arslanPair(number, res = null) {
         // ========== ANTI-DELETE (FIXED) ==========
         conn.ev.on('messages.update', async (updates) => {
             try {
-                const liveConfig = await getUserConfigFromMongoDB(sanitizedNumber);
-                if (config.ANTIDELETE === 'true' || liveConfig.ANTIDELETE === 'true') {
-                    if (typeof handleAntidelete === 'function') {
-                        await handleAntidelete(conn, updates, store, getBotNumber(conn));
-                    } else {
-                        console.log('[AntiDelete] handleAntidelete is not a function');
-                    }
-                }
+                await handleAntidelete(conn, updates, store, getBotNumber(conn));
             } catch (error) {
                 console.error('[ANTIDELETE ERROR]', error.message);
             }
@@ -759,6 +755,13 @@ conn.ev.on('connection.update', async (update) => {
         // ========== MESSAGE HANDLER (arslan-MD Style) ==========
         conn.ev.on('messages.upsert', async (msg) => {
             try {
+                // Save every received original before command processing. A
+                // delete update only contains a revoke notice, so recovery
+                // depends on this cache being populated first.
+                rememberMessages(msg?.messages || [], getBotNumber(conn)).catch(error => {
+                    console.error('[ANTIDELETE] Could not save incoming messages:', error.message);
+                });
+
                 let mek = msg.messages[0];
                 if (!mek.message) return;
 
