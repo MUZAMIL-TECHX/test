@@ -47,6 +47,7 @@ const {
 
 const express = require('express');
 const fs = require('fs-extra');
+const fsSync = require('fs');
 const path = require('path');
 const pino = require('pino');
 const crypto = require('crypto');
@@ -58,14 +59,14 @@ const chalk = require('chalk');
 // ========== IMPORT ARSLAN-MD FEATURES ==========
 const GroupEvents = require('./lib/groupevents');
 const { PresenceControl, BotActivityFilter } = require('./data/presence');
-const registerAntiCall = require('./lib/anticall');
 const { getPrefix } = require('./lib/prefix');
 const { handleReaction } = require('./lib/reaction');
 const { fakevCard } = require('./lib/fakevCard');
 const AntiDelete = require('./lib/antidelete');
+const { isSudoNumber } = require('./lib/owner-state');
 
 // ========== SETTINGS.JS SE VALUES ==========
-const prefix = config.PREFIX || '.';
+let prefix = config.PREFIX || '.';
 const mode = config.MODE || config.WORK_TYPE || 'public';
 const BOT_NAME = config.BOT_NAME || 'MUZAMIL-XD';
 const OWNER_NAME = config.OWNER_NAME || 'Muzamil Khan';
@@ -232,6 +233,62 @@ function getGroupAdmins(participants) {
 // ========== NUMBER HELPERS ==========
 function cleanNumber(number) {
     return String(number || "").replace(/[^0-9]/g, "");
+}
+
+function isConfiguredOwner(number) {
+    const clean = cleanNumber(number);
+    return clean.length > 0 && OWNER_NUMBER.some(owner => cleanNumber(owner) === clean);
+}
+
+const ownerLidCache = new Map();
+let ownerLidResolvedAt = 0;
+
+async function resolveOwnerStatus(conn, sender, from, isFromMe, groupMetadata = null) {
+    if (isConfiguredOwner(sender) || isFromMe || isSudoNumber(sender)) {
+        return {
+            isOwner: true,
+            isRealOwner: isConfiguredOwner(sender)
+        };
+    }
+
+    const senderClean = cleanNumber(sender);
+    if (ownerLidCache.get(senderClean) === true) {
+        return { isOwner: true, isRealOwner: true };
+    }
+
+    if (groupMetadata && from?.endsWith('@g.us')) {
+        const participant = (groupMetadata.participants || []).find(
+            item => item.id === sender || item.lid === sender
+        );
+        if (participant && isConfiguredOwner(participant.id)) {
+            ownerLidCache.set(senderClean, true);
+            return { isOwner: true, isRealOwner: true };
+        }
+    }
+
+    // Modern WhatsApp may deliver the owner's participant as @lid. Resolve
+    // the mapping once and cache both positive and negative results.
+    if (sender.includes('@lid') || senderClean.length > 15) {
+        try {
+            const now = Date.now();
+            if (now - ownerLidResolvedAt > 6 * 60 * 60 * 1000) {
+                const ownerJids = OWNER_NUMBER.map(number => `${cleanNumber(number)}@s.whatsapp.net`);
+                const resolved = await conn.onWhatsApp?.(...ownerJids);
+                for (const item of resolved || []) {
+                    if (item?.lid) ownerLidCache.set(cleanNumber(item.lid), true);
+                }
+                ownerLidResolvedAt = now;
+            }
+        } catch (error) {
+            if (config.DEBUG === 'true') {
+                console.log('[Owner] LID resolution failed:', error.message);
+            }
+        }
+    }
+
+    const resolved = ownerLidCache.get(senderClean) === true;
+    if (resolved) ownerLidCache.set(senderClean, true);
+    return { isOwner: resolved, isRealOwner: resolved };
 }
 
 function getBotNumber(socket) {
@@ -632,7 +689,8 @@ async function arslanPair(number, res = null) {
         // ========== ANTI-DELETE (FIXED) ==========
         conn.ev.on('messages.update', async (updates) => {
             try {
-                if (config.ANTIDELETE === 'true') {
+                const liveConfig = await getUserConfigFromMongoDB(sanitizedNumber);
+                if (config.ANTIDELETE === 'true' || liveConfig.ANTIDELETE === 'true') {
                     const botNum = getBotNumber(conn);
                     if (typeof handleAntidelete === 'function') {
                         await handleAntidelete(conn, updates, store, botNum);
@@ -768,8 +826,6 @@ conn.ev.on('connection.update', async (update) => {
                         const botJid = getBotJid(conn);
                         const sender = mek.key.fromMe ? botJid : (mek.key.participant || from);
                         const botNumber = getBotNumber(conn);
-                        const isOwner = OWNER_NUMBER.includes(cleanNumber(sender)) || mek.key.fromMe;
-
                         let groupMetadata = {};
                         let groupName = '';
                         let participants = [];
@@ -790,6 +846,27 @@ conn.ev.on('connection.update', async (update) => {
                             } catch (err) {}
                         }
 
+                        const ownerStatus = await resolveOwnerStatus(
+                            conn,
+                            sender,
+                            from,
+                            mek.key.fromMe,
+                            groupMetadata
+                        );
+                        const isOwner = ownerStatus.isOwner;
+                        const isRealOwner = ownerStatus.isRealOwner;
+
+                        if (cmd.strictOwner && !isRealOwner) {
+                            return conn.sendMessage(from, {
+                                text: '❌ Only the configured real owner can use this command.'
+                            }, { quoted: mek });
+                        }
+                        if ((cmd.ownerOnly || cmd.sudoOnly) && !isOwner) {
+                            return conn.sendMessage(from, {
+                                text: '❌ This command is only for the owner, co-owner or sudo users.'
+                            }, { quoted: mek });
+                        }
+
                         try {
                             await cmd.function(conn, mek, m, {
                                 from,
@@ -806,7 +883,9 @@ conn.ev.on('connection.update', async (update) => {
                                 pushname: mek.pushName || "User",
                                 isMe: mek.key.fromMe,
                                 isOwner: isOwner,
+                                isRealOwner,
                                 isCreator: isOwner,
+                                config,
                                 groupMetadata,
                                 groupName,
                                 participants,
@@ -836,7 +915,15 @@ conn.ev.on('connection.update', async (update) => {
                 const senderNumber = cleanNumber(sender);
                 const botNumber = getBotNumber(conn);
                 const isMe = mek.key.fromMe || sender === botJid;
-                const isOwner = OWNER_NUMBER.includes(senderNumber) || isMe;
+                const ownerStatus = await resolveOwnerStatus(
+                    conn,
+                    sender,
+                    from,
+                    isMe,
+                    null
+                );
+                let isOwner = ownerStatus.isOwner;
+                let isRealOwner = ownerStatus.isRealOwner;
 
                 // ========== GROUP METADATA ==========
                 let groupMetadata = {};
@@ -869,6 +956,18 @@ conn.ev.on('connection.update', async (update) => {
                         isAdmins = groupAdmins.includes(sender) ||
                             groupAdmins.some(a => a.split('@')[0] === sender.split('@')[0]);
 
+                        if (!isOwner) {
+                            const resolvedOwner = await resolveOwnerStatus(
+                                conn,
+                                sender,
+                                from,
+                                isMe,
+                                groupMetadata
+                            );
+                            isOwner = resolvedOwner.isOwner;
+                            isRealOwner = resolvedOwner.isRealOwner;
+                        }
+
                         if (config.DEBUG === "true") {
                             console.log(chalk.gray(`[ 👥 ] Group: ${groupName} | Members: ${participants.length} | Admins: ${groupAdmins.length}`));
                             console.log(chalk.gray(`[ 🤖 ] Bot Admin: ${isBotAdmins} | Sender Admin: ${isAdmins}`));
@@ -881,7 +980,27 @@ conn.ev.on('connection.update', async (update) => {
 
                 // ========== GET MESSAGE BODY ==========
                 const body = extractMessageBody(mek);
-                const isCmd = body.startsWith(prefix);
+                const activePrefix = config.PREFIX || prefix;
+                const isCmd = body.startsWith(activePrefix);
+
+                // Runtime presence is tied to the paired bot number, not the
+                // chat participant. This makes .autotyping/.autorecording
+                // work immediately and after a restart.
+                if (!mek.key.fromMe && from !== 'status@broadcast' && config.PRESENCE_CONTROL === 'true') {
+                    try {
+                        const liveConfig = await getUserConfigFromMongoDB(botNumber);
+                        if (config.AUTO_TYPING === 'true' || liveConfig.AUTO_TYPING === 'true') {
+                            await conn.sendPresenceUpdate('composing', from);
+                        }
+                        if (config.AUTO_RECORDING === 'true' || liveConfig.AUTO_RECORDING === 'true') {
+                            await conn.sendPresenceUpdate('recording', from);
+                        }
+                    } catch (presenceError) {
+                        if (config.DEBUG === 'true') {
+                            console.log('[Presence] Runtime update failed:', presenceError.message);
+                        }
+                    }
+                }
 
                 // ========== CUSTOM REACTION ==========
                 if (!mek.message?.reactionMessage && config.CUSTOM_REACT === "true") {
@@ -922,7 +1041,7 @@ conn.ev.on('connection.update', async (update) => {
 
                 // ========== COMMAND HANDLER ==========
                 if (isCmd) {
-                    const cmdName = body.slice(prefix.length).trim().split(" ")[0].toLowerCase();
+                    const cmdName = body.slice(activePrefix.length).trim().split(" ")[0].toLowerCase();
                     const events = require("./arslan");
 
                     const cmd = events.commands.find(cmd =>
@@ -930,6 +1049,14 @@ conn.ev.on('connection.update', async (update) => {
                     );
 
                     if (cmd) {
+                        if (cmd.strictOwner && !isRealOwner) {
+                            await m.reply('❌ Only the configured real owner can use this command.');
+                            return;
+                        }
+                        if ((cmd.ownerOnly || cmd.sudoOnly) && !isOwner) {
+                            await m.reply('❌ This command is only for the owner, co-owner or sudo users.');
+                            return;
+                        }
                         if (cmd.react) {
                             conn.sendMessage(from, { react: { text: cmd.react, key: mek.key } });
                         }
@@ -954,7 +1081,9 @@ conn.ev.on('connection.update', async (update) => {
                                 pushname: mek.pushName || "User",
                                 isMe,
                                 isOwner,
+                                isRealOwner,
                                 isCreator: isOwner,
+                                config,
                                 groupMetadata,
                                 groupName,
                                 participants,
@@ -971,7 +1100,7 @@ conn.ev.on('connection.update', async (update) => {
                         }
                     } else {
                         if (config.SEND_UNKNOWN_COMMAND === "true" && isOwner) {
-                            await m.reply(`❌ Command not found: ${cmdName}\nUse ${prefix}menu to see all commands`);
+                            await m.reply(`❌ Command not found: ${cmdName}\nUse ${activePrefix}menu to see all commands`);
                         }
                     }
                 }
@@ -989,6 +1118,9 @@ conn.ev.on('connection.update', async (update) => {
                                 sender,
                                 senderNumber,
                                 isOwner,
+                                isRealOwner,
+                                config,
+                                botNumber,
                                 isBotAdmins,
                                 isAdmins,
                                 reply: (text) => conn.sendMessage(from, { text }, { quoted: mek })
@@ -1038,12 +1170,10 @@ async function getCachedGroupMetadata(conn, jid) {
 
 // ========== CALL HANDLERS ==========
 async function setupCallHandlers(socket, number) {
-    registerAntiCall(socket, config);
-
     socket.ev.on('call', async (calls) => {
         try {
             const userConfig = await getUserConfigFromMongoDB(number);
-            if (userConfig.ANTI_CALL !== 'true') return;
+            if (userConfig.ANTI_CALL !== 'true' && config.ANTI_CALL !== 'true') return;
             for (const call of calls) {
                 if (call.status !== 'offer') continue;
                 await socket.rejectCall(call.id, call.from);

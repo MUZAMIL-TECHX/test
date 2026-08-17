@@ -12,6 +12,9 @@ function cmd(info, func) {
     if (!data.desc) data.desc = '';
     if (!data.fromMe) data.fromMe = false;
     if (!data.category) data.category = 'misc';
+    if (data.ownerOnly === undefined) data.ownerOnly = false;
+    if (data.strictOwner === undefined) data.strictOwner = false;
+    if (data.sudoOnly === undefined) data.sudoOnly = false;
     
     commands.push(data);
     return data;

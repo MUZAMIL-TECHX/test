@@ -105,9 +105,11 @@ module.exports = {
      * @description Owner's WhatsApp numbers (multiple owners supported)
      * @type {string[]}
      */
-    OWNER_NUMBER: process.env.OWNER_NUMBER ? 
-        process.env.OWNER_NUMBER.split(',') : 
-        ['923433740855'],
+    OWNER_NUMBER: (process.env.OWNER_NUMBER ?
+        process.env.OWNER_NUMBER.split(',') :
+        ['923433740855'])
+        .map(number => String(number).replace(/\D/g, ''))
+        .filter(Boolean),
 
     /**
      * @description Bot footer text
@@ -164,6 +166,12 @@ module.exports = {
      * @type {string}
      */
     AUTO_TYPING: process.env.AUTO_TYPING || 'false',
+
+    /**
+     * @description Enable the live presence handler used by auto typing/recording
+     * @type {string}
+     */
+    PRESENCE_CONTROL: process.env.PRESENCE_CONTROL || 'true',
 
     /**
      * @description Show recording indicator in chat
