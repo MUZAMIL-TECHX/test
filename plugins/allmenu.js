@@ -8,8 +8,13 @@ cmd({
     desc: "Display all available bot commands",
     category: "system",
     filename: __filename,
-}, async (conn, mek, m, { reply }) => {
+}, async (conn, mek, m, { from, reply }) => {
     try {
+        // Menu reaction
+        await conn.sendMessage(from, {
+            react: { text: "📜", key: m.key }
+        });
+
         const time = moment().tz("Africa/Kampala").format("HH:mm:ss");
         const date = moment().tz("Africa/Kampala").format("dddd, MMMM Do YYYY");
 
@@ -22,21 +27,6 @@ cmd({
 ┃ ❍ Creater » MUZAMIL-XD
 ┃ ❍ Commands » Protection commands available
 ╰━━━━━━━━━━━━━━━━┈⊷
-
-╭━━━〔 📜 MENU SECTIONS 〕
-┃ ❍ 1️⃣  🤖 AI Menu
-┃ ❍ 2️⃣  👑 Owner Menu
-┃ ❍ 3️⃣  ⚙️ Settings Menu
-┃ ❍ 4️⃣  📥 Download Menu
-┃ ❍ 5️⃣  🎨 Sticker Menu
-┃ ❍ 6️⃣  👥 Group Menu
-┃ ❍ 7️⃣  🛡️ Admin Menu
-┃ ❍ 8️⃣  🔍 Search Menu
-┃ ❍ 9️⃣  🎮 Fun Menu
-┃ ❍ 🔟  🏠 Main Menu
-┃ ❍ 1️⃣1️⃣ 🛠️ Tools Menu
-╰━━━━━━━━━━━━━━━━┈⊷
-
 ╭━━━〔 🤖 AI MENU 〕
 ┃ ❍ ai [query]
 ┃ ❍ darkai [query]
@@ -133,7 +123,7 @@ cmd({
 
 > 𝐂𝐑𝐄𝐀𝐓𝐄𝐑: MUZAMIL-XD`;
 
-        await conn.sendMessage(m.chat, {
+        await conn.sendMessage(from, {
             image: { url: "https://i.ibb.co/Y7Jyd15p/1000039546.png" },
             caption: menuText,
             contextInfo: {
