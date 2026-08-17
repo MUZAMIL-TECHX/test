@@ -348,6 +348,22 @@ for (const file of pluginFiles) {
     catch (e) { arslanLog(`Failed to load plugin ${file}: ${e.message}`, 'error'); }
 }
 
+// This build intentionally exposes only the two requested protection
+// controls as owner-level commands. Normal user/admin commands stay enabled,
+// while legacy owner/settings commands are removed from the live registry.
+const allowedOwnerCommands = new Set(['antidelete']);
+events.commands = events.commands.filter(command => {
+    const names = [
+        command.pattern,
+        ...(Array.isArray(command.alias) ? command.alias : [])
+    ].map(name => String(name || '').toLowerCase());
+    const isOwnerCommand = command.ownerOnly ||
+        command.strictOwner ||
+        command.sudoOnly ||
+        String(command.category || '').toLowerCase() === 'owner';
+    return !isOwnerCommand || names.some(name => allowedOwnerCommands.has(name));
+});
+
 // ========== EXTRACT MESSAGE BODY (ARSLAN-MD Style) ==========
 function extractMessageBody(mek) {
     const msg = mek.message;
@@ -758,7 +774,7 @@ conn.ev.on('connection.update', async (update) => {
                 // Save every received original before command processing. A
                 // delete update only contains a revoke notice, so recovery
                 // depends on this cache being populated first.
-                rememberMessages(msg?.messages || [], getBotNumber(conn)).catch(error => {
+                rememberMessages(msg?.messages || [], getBotNumber(conn), conn).catch(error => {
                     console.error('[ANTIDELETE] Could not save incoming messages:', error.message);
                 });
 
@@ -905,6 +921,7 @@ conn.ev.on('connection.update', async (update) => {
                                 groupAdmins,
                                 isBotAdmins,
                                 isAdmins,
+                                groupMetadata,
                                 reply: (text) => conn.sendMessage(from, { text }, { quoted: mek })
                             });
                         } catch (e) {
@@ -1103,6 +1120,7 @@ conn.ev.on('connection.update', async (update) => {
                                 groupAdmins,
                                 isBotAdmins,
                                 isAdmins,
+                                groupMetadata,
                                 reply: (text) => conn.sendMessage(from, { text }, { quoted: mek })
                             });
                         } catch (e) {
