@@ -20,7 +20,7 @@ cmd({
 ┃ ❍ Prefix » [.]
 ┃ ❍ Runtime » 2 hours, 26 minutes, 37 seconds
 ┃ ❍ Creater » MUZAMIL-XD
-┃ ❍ Commands » 64
+┃ ❍ Commands » Protection commands available
 ╰━━━━━━━━━━━━━━━━┈⊷
 
 ╭━━━〔 📜 MENU SECTIONS 〕
@@ -48,27 +48,11 @@ cmd({
 ╰━━━━━━━━━━━━━━━━┈⊷
 
 ╭━━━〔 👑 OWNER MENU 〕
-┃ ❍ alive
-┃ ❍ anticall
 ┃ ❍ antidelete
-┃ ❍ antidelstatus
-┃ ❍ autobio
-┃ ❍ leave
-┃ ❍ unblock
-┃ ❍ vv
 ╰━━━━━━━━━━━━━━━━┈⊷
 
 ╭━━━〔 ⚙️ SETTINGS MENU 〕
-┃ ❍ autorecording
-┃ ❍ autotyping
-┃ ❍ anticall
-┃ ❍ welcome
-┃ ❍ goodbye
-┃ ❍ autoread
-┃ ❍ autoviewsview
-┃ ❍ autolikestatus
-┃ ❍ mode
-┃ ❍ setprefix
+┃ ❍ Owner settings are disabled in this build
 ╰━━━━━━━━━━━━━━━━┈⊷
 
 ╭━━━〔 📥 DOWNLOAD MENU 〕
@@ -114,6 +98,7 @@ cmd({
 ╰━━━━━━━━━━━━━━━━┈⊷
 
 ╭━━━〔 🛡️ ADMIN MENU 〕
+┃ ❍ antilink
 ┃ ❍ kick @user
 ┃ ❍ kickall
 ┃ ❍ end
