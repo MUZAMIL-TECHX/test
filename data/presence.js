@@ -20,11 +20,15 @@ async function PresenceControl(conn, update) {
         // Check if presence tracking is enabled
         if (config.PRESENCE_CONTROL !== 'true') return;
         
-        // Get user config from database if available
+        // Get user config from database if available. The live message
+        // handler also invokes this behavior directly; this listener remains
+        // compatible for callers that provide a botNumber in the update.
         let userConfig = {};
         try {
             const { getUserConfigFromMongoDB } = require('../lib/database');
-            userConfig = await getUserConfigFromMongoDB(id.split('@')[0]) || {};
+            userConfig = await getUserConfigFromMongoDB(
+                update.botNumber || id.split('@')[0]
+            ) || {};
         } catch (e) {
             // Database not available, use config
             userConfig = {
