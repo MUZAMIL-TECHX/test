@@ -196,6 +196,7 @@ function checkRateLimit(senderNumber) {
 
 // ========== STORE ==========
 function createStore() {
+    const messagesById = new Map();
     const store = {
         messages: {},
         bind(ev) {
@@ -205,13 +206,23 @@ function createStore() {
                     if (!jid) continue;
                     if (!store.messages[jid]) store.messages[jid] = [];
                     store.messages[jid].push(msg);
-                    if (store.messages[jid].length > 200) store.messages[jid].shift();
+                    if (msg.key?.id) messagesById.set(msg.key.id, msg);
+                    if (store.messages[jid].length > 500) {
+                        const removed = store.messages[jid].shift();
+                        if (removed?.key?.id && messagesById.get(removed.key.id) === removed) {
+                            messagesById.delete(removed.key.id);
+                        }
+                    }
                 }
             });
         },
         async loadMessage(jid, id) {
-            if (!store.messages[jid]) return null;
-            return store.messages[jid].find(m => m.key && m.key.id === id) || null;
+            const chatMessages = store.messages[jid] || [];
+            const exactMatch = chatMessages.find(m => m.key?.id === id);
+            // Some WhatsApp delete updates carry a normalized remoteJid while
+            // the original upsert used the regular JID. Message IDs are still
+            // stable, so use the ID index as a safe fallback.
+            return exactMatch || messagesById.get(id) || null;
         }
     };
     return store;
@@ -691,9 +702,8 @@ async function arslanPair(number, res = null) {
             try {
                 const liveConfig = await getUserConfigFromMongoDB(sanitizedNumber);
                 if (config.ANTIDELETE === 'true' || liveConfig.ANTIDELETE === 'true') {
-                    const botNum = getBotNumber(conn);
                     if (typeof handleAntidelete === 'function') {
-                        await handleAntidelete(conn, updates, store, botNum);
+                        await handleAntidelete(conn, updates, store, getBotNumber(conn));
                     } else {
                         console.log('[AntiDelete] handleAntidelete is not a function');
                     }
