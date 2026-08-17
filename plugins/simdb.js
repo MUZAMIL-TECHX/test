@@ -13,24 +13,24 @@ cmd({
     try {
         if (!q) {
             return reply(
-                `╔═══════════════════════════════════╗
-║     📱 *SIM DATABASE PRO* 📱     ║
-╠═══════════════════════════════════╣
-║                                   ║
-║  ✦ *Command Usage:*              ║
-║  ✦ .simdb <CNIC or Number>       ║
-║                                   ║
-║  ✦ *Examples:*                   ║
-║  ✦ .simdb 4120110609811          ║
-║  ✦ .simdb 03060931449            ║
-║                                   ║
-║  ✦ *Features:*                   ║
-║  ✦ 🔍 Search by CNIC             ║
-║  ✦ 📱 Search by Mobile Number    ║
-║  ✦ 📊 Detailed SIM Information   ║
-║  ✦ ⚡ Fast & Accurate Results     ║
-║                                   ║
-╚═══════════════════════════════════╝`
+`*_MUZAMIL-XD_*
+
+📱 *SIM DATABASE PRO*
+
+📌 *Usage:*
+• .simdb <CNIC or Number>
+
+📝 *Examples:*
+• .simdb 4120110609811
+• .simdb 03060931449
+
+✨ *Features:*
+• 🔍 Search by CNIC
+• 📱 Search by Mobile Number
+• 📊 Detailed SIM Information
+• ⚡ Fast & Accurate Results
+
+> Powered By MUZAMIL-XD`
             );
         }
 
@@ -39,7 +39,7 @@ cmd({
             react: { text: "⏳", key: m.key }
         });
 
-        // API Call - Fixed with proper encoding
+        // API Call
         const apiUrl = `https://wasifali.biz.id/public_apis/sim-info-api.php?search=${encodeURIComponent(q)}`;
         const response = await axios.get(apiUrl, { 
             timeout: 30000,
@@ -57,8 +57,10 @@ cmd({
                 react: { text: "❌", key: m.key }
             });
             return reply(
-                `*_MUZAMIL-XD_*
-❌ API Error: ${data?.message || "Invalid response from server"}
+`*_MUZAMIL-XD_*
+
+❌ *API Error*
+${data?.message || "Invalid response from server"}
 
 > Powered By MUZAMIL-XD`
             );
@@ -69,10 +71,12 @@ cmd({
                 react: { text: "❌", key: m.key }
             });
             return reply(
-                `*_MUZAMIL-XD_*
-❌ No SIM information found for: ${q}
+`*_MUZAMIL-XD_*
 
-💡 Tips:
+❌ *No Results Found*
+Query: ${q}
+
+💡 *Tips:*
 • Check CNIC (13 digits)
 • Check Number (11 digits)
 • Remove spaces/special characters
@@ -81,35 +85,26 @@ cmd({
             );
         }
 
-        // Build response text
-        let responseText = `*_MUZAMIL-XD_*\n\n📱 *SIM DATABASE RESULTS*\n📊 *Total Records:* ${data.count}\n\n`;
+        // Build response
+        let responseText = `*_MUZAMIL-XD_*\n\n📱 *SIM DATABASE*\n📊 Total: ${data.count} records\n\n`;
 
         for (let i = 0; i < data.records.length; i++) {
             const record = data.records[i];
             const isFound = record.name !== "NOT FOUND";
             
-            const statusEmoji = isFound ? "✅" : "❌";
-            const statusText = isFound ? "FOUND" : "NOT FOUND";
-            
-            const networkEmoji = record.network === "Jazz" ? "📶" : 
-                               record.network === "Zong" ? "📶" :
-                               record.network === "Telenor" ? "📶" :
-                               record.network === "Ufone" ? "📶" : "📶";
-
             responseText += `━━━━━━━━━━━━━━━━━━━━━\n`;
-            responseText += `📋 *RECORD ${i + 1}*\n`;
-            responseText += `${statusEmoji} Status: ${statusText}\n`;
+            responseText += `📋 Record ${i + 1}\n`;
+            responseText += `✅ Status: ${isFound ? "FOUND" : "NOT FOUND"}\n`;
             responseText += `👤 Name: ${isFound ? record.name : "🔒 Private"}\n`;
             responseText += `📱 Number: ${record.mobile}\n`;
             responseText += `🆔 CNIC: ${record.cnic}\n`;
-            responseText += `${networkEmoji} Network: ${record.network}\n`;
+            responseText += `📶 Network: ${record.network}\n`;
             responseText += `📍 Address: ${isFound ? record.address : "🔒 Private"}\n`;
         }
 
         responseText += `\n━━━━━━━━━━━━━━━━━━━━━\n`;
         responseText += `> Powered By MUZAMIL-XD`;
 
-        // Send response
         await conn.sendMessage(from, {
             text: responseText
         }, { quoted: mek });
@@ -136,10 +131,12 @@ cmd({
         }
 
         reply(
-            `*_MUZAMIL-XD_*
-❌ Error: ${errorMessage}
+`*_MUZAMIL-XD_*
 
-💡 Solutions:
+❌ *Error*
+${errorMessage}
+
+💡 *Solutions:*
 • Check your internet connection
 • Try again in 5 minutes
 • Use correct format (CNIC: 13 digits, Number: 11 digits)
