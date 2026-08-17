@@ -14,132 +14,139 @@ cmd({
         const date = moment().tz("Africa/Kampala").format("dddd, MMMM Do YYYY");
 
         const menuText = `
-╔══════════════════════════════════════════════════╗
-║              ✦ 𝗠𝗨𝗭𝗔𝗠𝗜𝗟-𝗫𝗗 𝗕𝗢𝗧 ✦              ║
-╠══════════════════════════════════════════════════╣
-║                                                  ║
-║   ⏱️ Time     : ${time}                           ║
-║   📅 Date     : ${date}                          ║
-║   📊 Commands : 64 Active                        ║
-║   👑 Owner    : MUZAMIL-XD                      ║
-║   🌐 Platform : TeamRedXhackers                  ║
-║                                                  ║
-╠══════════════════════════════════════════════════╣
-║                                                  ║
-║  🤖 𝗔𝗜                                         ║
-║  ─────────────────────                          ║
-║  ✦ ai                                           ║
-║                                                  ║
-║  👑 𝗢𝗪𝗡𝗘𝗥                                      ║
-║  ─────────────────────                          ║
-║  ✦ alive                                        ║
-║  ✦ anticall                                     ║
-║  ✦ antidelete                                   ║
-║  ✦ antidelstatus                                ║
-║  ✦ autobio                                      ║
-║  ✦ leave                                        ║
-║  ✦ unblock                                      ║
-║  ✦ vv                                           ║
-║                                                  ║
-║  ⚙️ 𝗦𝗘𝗧𝗧𝗜𝗡𝗚𝗦                                  ║
-║  ─────────────────────                          ║
-║  ✦ autorecording                                ║
-║  ✦ autotyping                                   ║
-║  ✦ anticall                                     ║
-║  ✦ welcome                                      ║
-║  ✦ goodbye                                      ║
-║  ✦ autoread                                     ║
-║  ✦ autoviewsview                                ║
-║  ✦ autolikestatus                               ║
-║  ✦ mode                                         ║
-║  ✦ setprefix                                    ║
-║                                                  ║
-║  📱 𝗦𝗬𝗦𝗧𝗘𝗠                                      ║
-║  ─────────────────────                          ║
-║  ✦ menu                                         ║
-║                                                  ║
-║  📥 𝗗𝗢𝗪𝗡𝗟𝗢𝗔𝗗                                  ║
-║  ─────────────────────                          ║
-║  ✦ apk                                          ║
-║  ✦ fb                                           ║
-║  ✦ pair                                         ║
-║  ✦ pair2                                        ║
-║  ✦ igdl4                                        ║
-║  ✦ igdl2                                        ║
-║  ✦ song                                         ║
-║  ✦ video                                        ║
-║                                                  ║
-║  🎨 𝗦𝗧𝗜𝗖𝗞𝗘𝗥                                    ║
-║  ─────────────────────                          ║
-║  ✦ attp                                         ║
-║                                                  ║
-║  🔞 𝗔𝗗𝗨𝗟𝗧                                       ║
-║  ─────────────────────                          ║
-║  ✦ xxxvideo                                     ║
-║                                                  ║
-║  👥 𝗚𝗥𝗢𝗨𝗣                                      ║
-║  ─────────────────────                          ║
-║  ✦ requestlist                                  ║
-║  ✦ acceptall                                    ║
-║  ✦ rejectall                                    ║
-║  ✦ removeadmins                                 ║
-║  ✦ promote                                      ║
-║  ✦ demote                                       ║
-║  ✦ botadmin                                     ║
-║  ✦ add                                          ║
-║  ✦ tagall                                       ║
-║  ✦ hidetag                                      ║
-║  ✦ admincheck                                   ║
-║  ✦ groupstatus                                  ║
-║                                                  ║
-║  🛡️ 𝗔𝗗𝗠𝗜𝗡                                      ║
-║  ─────────────────────                          ║
-║  ✦ kick                                         ║
-║  ✦ kickall                                      ║
-║  ✦ end                                          ║
-║                                                  ║
-║  📦 𝗗𝗢𝗪𝗡𝗟𝗢𝗔𝗗𝗘𝗥                                ║
-║  ─────────────────────                          ║
-║  ✦ gdrive                                       ║
-║  ✦ igdl                                         ║
-║  ✦ ig3                                          ║
-║  ✦ movie                                        ║
-║  ✦ movie-select                                 ║
-║  ✦ video1                                       ║
-║                                                  ║
-║  📌 𝗚𝗘𝗡𝗘𝗥𝗔𝗟                                    ║
-║  ─────────────────────                          ║
-║  ✦ Uptime                                       ║
-║  ✦ owner                                        ║
-║                                                  ║
-║  🔍 𝗦𝗘𝗔𝗥𝗖𝗛                                      ║
-║  ─────────────────────                          ║
-║  ✦ img                                          ║
-║  ✦ yts                                          ║
-║                                                  ║
-║  🎮 𝗙𝗨𝗡                                         ║
-║  ─────────────────────                          ║
-║  ✦ leakvideo                                    ║
-║  ✦ leakvideo2                                   ║
-║  ✦ boobs                                        ║
-║  ✦ xgirl                                        ║
-║                                                  ║
-║  🏠 𝗠𝗔𝗜𝗡                                        ║
-║  ─────────────────────                          ║
-║  ✦ alive                                        ║
-║  ✦ online                                       ║
-║  ✦ ping                                         ║
-║                                                  ║
-║  🛠️ 𝗧𝗢𝗢𝗟𝗦                                      ║
-║  ─────────────────────                          ║
-║  ✦ simdb                                        ║
-║  ✦ screenshot                                   ║
-║                                                  ║
-╠══════════════════════════════════════════════════╣
-║                                                  ║
-║     ✦ 𝗣𝗼𝘄𝗲𝗿𝗲𝗱 𝗕𝘆 𝗠𝗨𝗭𝗔𝗠𝗜𝗟-𝗫𝗗 ✦              ║
-║                                                  ║
-╚══════════════════════════════════════════════════╝`;
+╭━━━〔 👤 *MUZAMIL-XD* 〕━━━┈⊷
+
+┃ ❍ Mode » [public]
+┃ ❍ Prefix » [.]
+┃ ❍ Runtime » 2 hours, 26 minutes, 37 seconds
+┃ ❍ Creater » MUZAMIL-XD
+┃ ❍ Commands » 64
+╰━━━━━━━━━━━━━━━━┈⊷
+
+╭━━━〔 📜 MENU SECTIONS 〕
+┃ ❍ 1️⃣  🤖 AI Menu
+┃ ❍ 2️⃣  👑 Owner Menu
+┃ ❍ 3️⃣  ⚙️ Settings Menu
+┃ ❍ 4️⃣  📥 Download Menu
+┃ ❍ 5️⃣  🎨 Sticker Menu
+┃ ❍ 6️⃣  👥 Group Menu
+┃ ❍ 7️⃣  🛡️ Admin Menu
+┃ ❍ 8️⃣  🔍 Search Menu
+┃ ❍ 9️⃣  🎮 Fun Menu
+┃ ❍ 🔟  🏠 Main Menu
+┃ ❍ 1️⃣1️⃣ 🛠️ Tools Menu
+╰━━━━━━━━━━━━━━━━┈⊷
+
+╭━━━〔 🤖 AI MENU 〕
+┃ ❍ ai [query]
+┃ ❍ darkai [query]
+┃ ❍ workai [query]
+┃ ❍ ask [query]
+┃ ❍ chatgpt [query]
+┃ ❍ gpt [query]
+┃ ❍ aiask [query]
+╰━━━━━━━━━━━━━━━━┈⊷
+
+╭━━━〔 👑 OWNER MENU 〕
+┃ ❍ alive
+┃ ❍ anticall
+┃ ❍ antidelete
+┃ ❍ antidelstatus
+┃ ❍ autobio
+┃ ❍ leave
+┃ ❍ unblock
+┃ ❍ vv
+╰━━━━━━━━━━━━━━━━┈⊷
+
+╭━━━〔 ⚙️ SETTINGS MENU 〕
+┃ ❍ autorecording
+┃ ❍ autotyping
+┃ ❍ anticall
+┃ ❍ welcome
+┃ ❍ goodbye
+┃ ❍ autoread
+┃ ❍ autoviewsview
+┃ ❍ autolikestatus
+┃ ❍ mode
+┃ ❍ setprefix
+╰━━━━━━━━━━━━━━━━┈⊷
+
+╭━━━〔 📥 DOWNLOAD MENU 〕
+┃ ❍ apk [name]
+┃ ❍ fb [url]
+┃ ❍ pair
+┃ ❍ pair2
+┃ ❍ igdl4 [url]
+┃ ❍ igdl2 [url]
+┃ ❍ song [name]
+┃ ❍ video [name]
+┃ ❍ gdrive [url]
+┃ ❍ igdl [url]
+┃ ❍ ig3 [url]
+┃ ❍ movie [name]
+┃ ❍ video1 [name]
+╰━━━━━━━━━━━━━━━━┈⊷
+
+╭━━━〔 🎨 STICKER MENU 〕
+┃ ❍ attp [text]
+┃ ❍ attptext [text]
+┃ ❍ textsticker [text]
+┃ ❍ namesticker [text]
+┃ ❍ stickername [text]
+┃ ❍ at [text]
+┃ ❍ att [text]
+┃ ❍ atp [text]
+╰━━━━━━━━━━━━━━━━┈⊷
+
+╭━━━〔 👥 GROUP MENU 〕
+┃ ❍ requestlist
+┃ ❍ acceptall
+┃ ❍ rejectall
+┃ ❍ removeadmins
+┃ ❍ promote @user
+┃ ❍ demote @user
+┃ ❍ botadmin
+┃ ❍ add @user
+┃ ❍ tagall [msg]
+┃ ❍ hidetag [msg]
+┃ ❍ admincheck
+┃ ❍ groupstatus
+╰━━━━━━━━━━━━━━━━┈⊷
+
+╭━━━〔 🛡️ ADMIN MENU 〕
+┃ ❍ kick @user
+┃ ❍ kickall
+┃ ❍ end
+╰━━━━━━━━━━━━━━━━┈⊷
+
+╭━━━〔 🔍 SEARCH MENU 〕
+┃ ❍ img [query]
+┃ ❍ yts [query]
+╰━━━━━━━━━━━━━━━━┈⊷
+
+╭━━━〔 🎮 FUN MENU 〕
+┃ ❍ leakvideo
+┃ ❍ leakvideo2
+┃ ❍ boobs
+┃ ❍ xgirl
+┃ ❍ xxxvideo
+╰━━━━━━━━━━━━━━━━┈⊷
+
+╭━━━〔 🏠 MAIN MENU 〕
+┃ ❍ alive
+┃ ❍ online
+┃ ❍ ping
+┃ ❍ menu
+┃ ❍ Uptime
+┃ ❍ owner
+╰━━━━━━━━━━━━━━━━┈⊷
+
+╭━━━〔 🛠️ TOOLS MENU 〕
+┃ ❍ simdb [cnic/number]
+┃ ❍ screenshot [url]
+╰━━━━━━━━━━━━━━━━┈⊷
+
+> 𝐂𝐑𝐄𝐀𝐓𝐄𝐑: MUZAMIL-XD`;
 
         await conn.sendMessage(m.chat, {
             image: { url: "https://i.ibb.co/Y7Jyd15p/1000039546.png" },
