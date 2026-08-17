@@ -16,62 +16,40 @@ cmd({
       react: { text: "🚀", key: m.key }
     });
 
-    // initial message with stylish header
+    // initial message
     const msg = await conn.sendMessage(from, {
-      text: `╭━━━《 🚀 *MUZAMIL-XD* 》━━━┈⊷
+      text: `╭━━━《 🚀 *PING TEST* 》━━━┈⊷
 ┃
 ┃ ✦ *Status* : 🔄 *Testing...*
-┃ ✦ *Speed*  : ⏳ *Calculating*
-┃ ✦ *Mode*   : 📡 *Live Monitor*
 ┃
 ╰━━━━━━━━━━━━┈⊷`
     }, { quoted: mek });
 
     await sleep(1000);
 
-    // 🔁 live update loop (30 seconds)
-    for (let i = 0; i < 30; i++) {
+    // 🔁 live update loop (5 seconds)
+    for (let i = 0; i < 5; i++) {
 
       const start = Date.now();
-
-      // tiny delay simulating ping check
       await sleep(50);
-
       const ping = Date.now() - start;
       
-      // Determine speed emoji based on ping
-      let speedEmoji = "🐢"; // Slow
-      let speedStatus = "SLOW";
-      if (ping < 50) {
-        speedEmoji = "⚡"; 
-        speedStatus = "LIGHTNING";
-      } else if (ping < 100) {
-        speedEmoji = "🚀"; 
-        speedStatus = "FAST";
-      } else if (ping < 200) {
-        speedEmoji = "📶"; 
-        speedStatus = "GOOD";
-      } else if (ping < 500) {
-        speedEmoji = "📡"; 
-        speedStatus = "MODERATE";
-      }
-
-      // Create live status bar
-      const barLength = Math.min(Math.floor(ping / 20), 20);
-      const bar = "█".repeat(barLength) + "░".repeat(20 - barLength);
+      // Speed emoji
+      let speedEmoji = "🐢";
+      if (ping < 50) speedEmoji = "⚡";
+      else if (ping < 100) speedEmoji = "🚀";
+      else if (ping < 200) speedEmoji = "📶";
+      else if (ping < 500) speedEmoji = "📡";
 
       await conn.relayMessage(from, {
         protocolMessage: {
           key: msg.key,
           type: 14,
           editedMessage: {
-            conversation: `╭━━━《 🚀 *PING MONITOR* 》━━━┈⊷
+            conversation: `╭━━━《 🚀 *PING TEST* 》━━━┈⊷
 ┃
-┃ ✦ *Status* : ${speedEmoji} *${speedStatus}*
-┃ ✦ *Speed*  : *${ping}ms* 🎯
-┃ ✦ *Bar*    : ${bar}
-┃ ✦ *Mode*   : 📡 *Live Monitor*
-┃ ✦ *Time*   : ⏱️ ${i+1}/30s
+┃ ✦ *Speed*  : *${ping}ms* ${speedEmoji}
+┃ ✦ *Time*   : ⏱️ ${i+1}/5s
 ┃
 ╰━━━━━━━━━━━━┈⊷`
           }
@@ -81,18 +59,16 @@ cmd({
       await sleep(1000);
     }
 
-    // Final completed message
+    // Final message
     await conn.relayMessage(from, {
       protocolMessage: {
         key: msg.key,
         type: 14,
         editedMessage: {
-          conversation: `╭━━━《 🚀 *PING COMPLETE* 》━━━┈⊷
+          conversation: `╭━━━《 ✅ *PING DONE* 》━━━┈⊷
 ┃
-┃ ✦ *Status* : ✅ *Monitor Finished*
-┃ ✦ *Duration* : ⏱️ 30 Seconds
-┃ ✦ *Mode*    : 📡 *Live Monitor*
-┃ ✦ *Bot*     : 👑 *MUZAMIL-XD*
+┃ ✦ *Status* : ✅ *Complete*
+┃ ✦ *Bot*    : 👑 *MUZAMIL-XD*
 ┃
 ╰━━━━━━━━━━━━┈⊷`
         }
@@ -115,7 +91,6 @@ cmd({
     reply(`╭━━━《 ❌ *PING ERROR* 》━━━┈⊷
 ┃
 ┃ ✦ *Error* : ${e.message}
-┃ ✦ *Status* : ❌ *Failed*
 ┃
 ╰━━━━━━━━━━━━┈⊷`);
   }
