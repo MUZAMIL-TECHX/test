@@ -18,7 +18,7 @@ cmd({
 
     // initial message with stylish header
     const msg = await conn.sendMessage(from, {
-      text: `╭━━━《 🚀 *PING MONITOR* 》━━━┈⊷
+      text: `╭━━━《 🚀 *MUZAMIL-XD* 》━━━┈⊷
 ┃
 ┃ ✦ *Status* : 🔄 *Testing...*
 ┃ ✦ *Speed*  : ⏳ *Calculating*
