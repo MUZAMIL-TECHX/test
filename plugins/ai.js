@@ -82,7 +82,6 @@ cmd({
             } else if (data.text) {
                 answer = data.text;
             } else {
-                // Try to parse as string
                 answer = JSON.stringify(data);
             }
         } else if (typeof data === 'string') {
@@ -114,42 +113,18 @@ cmd({
             );
         }
 
-        // Format the response with proper styling
+        // Format the response with new style
         const formattedAnswer = answer.length > 1000 ? answer.substring(0, 1000) + "\n\n...(truncated)" : answer;
 
-        const responseCard = 
-            `╔═══════════════════════════════════╗
-║     🤖 *AI RESPONSE* 🤖         ║
-╠═══════════════════════════════════╣
-║                                   ║
-║  ✦ *Question* : ${q}                
-║  ✦ *Status* : ✅ *Success*       ║
-║                                   ║
-║  ═══════════════════════════════  ║
-║  📝 *Answer:*                     ║
-║                                   ║
-║  ${formattedAnswer}               ║
-║                                   ║
-║  ═══════════════════════════════  ║
-║  ✦ *Powered By* : ARSLAN-MD      ║
-║  ✦ *AI Engine* : WormGPT         ║
-║  ✦ *Status* : 🟢 *Online*        ║
-║                                   ║
-╚═══════════════════════════════════╝`;
+        const responseText = 
+`*_MUZAMIL-XD_*
+${formattedAnswer}
+> Powered By MUZAMIL-XD`;
 
-        // Send response in chunks if too long
-        if (responseCard.length > 4096) {
-            const chunks = responseCard.match(/.{1,4000}/g) || [];
-            for (const chunk of chunks) {
-                await conn.sendMessage(from, {
-                    text: chunk
-                }, { quoted: mek });
-            }
-        } else {
-            await conn.sendMessage(from, {
-                text: responseCard
-            }, { quoted: mek });
-        }
+        // Send response
+        await conn.sendMessage(from, {
+            text: responseText
+        }, { quoted: mek });
 
         await conn.sendMessage(from, {
             react: { text: "✅", key: m.key }

@@ -39,48 +39,51 @@ cmd({
             react: { text: "⏳", key: m.key }
         });
 
-        await reply(
-            `╔═══════════════════════════════════╗
-║     🔍 *SEARCHING DATABASE* 🔍    ║
-╠═══════════════════════════════════╣
-║                                   ║
-║  ✦ *Query* : ${q}                    ║
-║  ✦ *Status* : ⏳ *Processing*      ║
-║  ✦ *Mode*   : 📡 *Real-time*      ║
-║                                   ║
-╚═══════════════════════════════════╝`
-        );
-
-        // API Call
+        // API Call - Fixed with proper encoding
         const apiUrl = `https://wasifali.biz.id/public_apis/sim-info-api.php?search=${encodeURIComponent(q)}`;
-        const response = await axios.get(apiUrl, { timeout: 30000 });
+        const response = await axios.get(apiUrl, { 
+            timeout: 30000,
+            headers: {
+                'Accept': 'application/json',
+                'User-Agent': 'Mozilla/5.0'
+            }
+        });
 
         const data = response.data;
 
-        if (!data.success || !data.records || data.records.length === 0) {
+        // Check if response is valid
+        if (!data || !data.success) {
             await conn.sendMessage(from, {
                 react: { text: "❌", key: m.key }
             });
             return reply(
-                `╔═══════════════════════════════════╗
-║     ❌ *NO RESULTS FOUND* ❌     ║
-╠═══════════════════════════════════╣
-║                                   ║
-║  ✦ *Query* : ${q}                    ║
-║  ✦ *Status* : ❌ *Not Found*      ║
-║                                   ║
-║  ═══════════════════════════════  ║
-║  💡 *Tips:*                       ║
-║  ✦ Check CNIC (13 digits)         ║
-║  ✦ Check Number (11 digits)       ║
-║  ✦ Remove spaces/special chars   ║
-║  ✦ Try again with correct input  ║
-║                                   ║
-╚═══════════════════════════════════╝`
+                `*_MUZAMIL-XD_*
+❌ API Error: ${data?.message || "Invalid response from server"}
+
+> Powered By MUZAMIL-XD`
             );
         }
 
-        // Send each record as separate card
+        if (!data.records || data.records.length === 0) {
+            await conn.sendMessage(from, {
+                react: { text: "❌", key: m.key }
+            });
+            return reply(
+                `*_MUZAMIL-XD_*
+❌ No SIM information found for: ${q}
+
+💡 Tips:
+• Check CNIC (13 digits)
+• Check Number (11 digits)
+• Remove spaces/special characters
+
+> Powered By MUZAMIL-XD`
+            );
+        }
+
+        // Build response text
+        let responseText = `*_MUZAMIL-XD_*\n\n📱 *SIM DATABASE RESULTS*\n📊 *Total Records:* ${data.count}\n\n`;
+
         for (let i = 0; i < data.records.length; i++) {
             const record = data.records[i];
             const isFound = record.name !== "NOT FOUND";
@@ -88,42 +91,27 @@ cmd({
             const statusEmoji = isFound ? "✅" : "❌";
             const statusText = isFound ? "FOUND" : "NOT FOUND";
             
-            const networkEmoji = record.network === "Jazz" ? "🟣" : 
-                               record.network === "Zong" ? "🟢" :
-                               record.network === "Telenor" ? "🔴" :
-                               record.network === "Ufone" ? "🟡" : "📶";
+            const networkEmoji = record.network === "Jazz" ? "📶" : 
+                               record.network === "Zong" ? "📶" :
+                               record.network === "Telenor" ? "📶" :
+                               record.network === "Ufone" ? "📶" : "📶";
 
-            const card = 
-                `╔═══════════════════════════════════╗
-║    📋 *SIM CARD ${i + 1}*    ║
-╠═══════════════════════════════════╣
-║                                   ║
-║  ${statusEmoji} *Status* : ${statusText}        ║
-║  👤 *Name* : ${isFound ? record.name : "🔒 Private"}  ║
-║  📱 *Number* : ${record.mobile}     ║
-║  🆔 *CNIC* : ${record.cnic}         ║
-║  ${networkEmoji} *Network* : ${record.network}      ║
-║  📍 *Address* : ${isFound ? record.address : "🔒 Private"}  ║
-║                                   ║
-╚═══════════════════════════════════╝`;
-
-            await conn.sendMessage(from, {
-                text: card
-            }, { quoted: mek });
+            responseText += `━━━━━━━━━━━━━━━━━━━━━\n`;
+            responseText += `📋 *RECORD ${i + 1}*\n`;
+            responseText += `${statusEmoji} Status: ${statusText}\n`;
+            responseText += `👤 Name: ${isFound ? record.name : "🔒 Private"}\n`;
+            responseText += `📱 Number: ${record.mobile}\n`;
+            responseText += `🆔 CNIC: ${record.cnic}\n`;
+            responseText += `${networkEmoji} Network: ${record.network}\n`;
+            responseText += `📍 Address: ${isFound ? record.address : "🔒 Private"}\n`;
         }
 
-        // Final footer
+        responseText += `\n━━━━━━━━━━━━━━━━━━━━━\n`;
+        responseText += `> Powered By MUZAMIL-XD`;
+
+        // Send response
         await conn.sendMessage(from, {
-            text: 
-                `╔═══════════════════════════════════╗
-║  ✨ *SEARCH COMPLETE* ✨         ║
-╠═══════════════════════════════════╣
-║                                   ║
-║  ✦ *Total Found* : ${data.count}     ║
-║  ✦ *Powered By* : MUZAMIL-XD     ║
-║  ✦ *Status* : 🟢 *Online*        ║
-║                                   ║
-╚═══════════════════════════════════╝`
+            text: responseText
         }, { quoted: mek });
 
         await conn.sendMessage(from, {
@@ -135,21 +123,29 @@ cmd({
         await conn.sendMessage(from, {
             react: { text: "❌", key: m.key }
         });
+        
+        let errorMessage = e.message || "Unknown error";
+        if (e.code === 'ECONNABORTED') {
+            errorMessage = "Request timeout - Server taking too long";
+        } else if (e.response?.status === 400) {
+            errorMessage = "Invalid request - Please check your input";
+        } else if (e.response?.status === 404) {
+            errorMessage = "API endpoint not found - Service might be down";
+        } else if (e.response?.status === 500) {
+            errorMessage = "Server error - Try again later";
+        }
+
         reply(
-            `╔═══════════════════════════════════╗
-║     ❌ *SYSTEM ERROR* ❌        ║
-╠═══════════════════════════════════╣
-║                                   ║
-║  ✦ *Error* : ${e.message || "API Failed"}  ║
-║  ✦ *Status* : 🔴 *Offline*       ║
-║                                   ║
-║  ═══════════════════════════════  ║
-║  💡 *Solutions:*                  ║
-║  ✦ Check your internet           ║
-║  ✦ Try again in 5 minutes        ║
-║  ✦ Use correct format            ║
-║                                   ║
-╚═══════════════════════════════════╝`
+            `*_MUZAMIL-XD_*
+❌ Error: ${errorMessage}
+
+💡 Solutions:
+• Check your internet connection
+• Try again in 5 minutes
+• Use correct format (CNIC: 13 digits, Number: 11 digits)
+• Try a different query
+
+> Powered By MUZAMIL-XD`
         );
     }
 });

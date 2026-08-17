@@ -6,12 +6,10 @@ const updateConfig = async (key, value, botNumber, config, reply) => {
     try {
         // 1. Update in-memory config (Immediate)
         config[key] = value;
+        if (key === 'WORK_TYPE') config.MODE = value;
         
         // 2. Update in Database (Persistent)
-        const newConfig = { ...config }; 
-        newConfig[key] = value;
-        
-        await updateUserConfig(botNumber, newConfig);
+        await updateUserConfig(botNumber, { [key]: value });
         
         return reply(`✅ *${key}* has been updated to: *${value}*`);
     } catch (e) {
@@ -29,6 +27,7 @@ cmd({
     alias: ["autorec", "arecording"],
     desc: "Enable/Disable auto recording simulation",
     category: "settings",
+    ownerOnly: true,
     react: "👑"
 },
 async(conn, mek, m, { args, isOwner, reply, botNumber, config }) => {
@@ -49,6 +48,7 @@ cmd({
     alias: ["autotype", "atyping"],
     desc: "Enable/Disable auto typing simulation",
     category: "settings",
+    ownerOnly: true,
     react: "👑"
 },
 async(conn, mek, m, { args, isOwner, reply, botNumber, config }) => {
@@ -70,9 +70,10 @@ async(conn, mek, m, { args, isOwner, reply, botNumber, config }) => {
 
 cmd({
     pattern: "anticall",
-    alias: "acall",
+    alias: ["acall"],
     desc: "Auto reject calls",
     category: "settings",
+    ownerOnly: true,
     react: "👑"
 },
 async(conn, mek, m, { args, isOwner, reply, botNumber, config }) => {
@@ -84,7 +85,7 @@ async(conn, mek, m, { args, isOwner, reply, botNumber, config }) => {
     } else if (value === 'off' || value === 'false') {
         await updateConfig('ANTI_CALL', 'false', botNumber, config, reply);
     } else {
-        reply(`*Current :❯ ${config.AUTO_RECORDING} 😊*\n\n*Whoever calls will be automatically rejected 😃 To turn this setting ON, type ☺️*\n*👑 ❮ANTICALL ON❯ 👑*\n*To turn ANTICALL OFF, type ☺️*\n*👑 ❮ANTICALL OFF❯ 👑*`);
+        reply(`*Current :❯ ${config.ANTI_CALL} 😊*\n\n*Whoever calls will be automatically rejected 😃 To turn this setting ON, type ☺️*\n*👑 ❮ANTICALL ON❯ 👑*\n*To turn ANTICALL OFF, type ☺️*\n*👑 ❮ANTICALL OFF❯ 👑*`);
     }
 });
 
@@ -96,6 +97,7 @@ cmd({
     pattern: "welcome",
     desc: "Enable/Disable welcome messages",
     category: "settings",
+    ownerOnly: true,
     react: "👑"
 },
 async(conn, mek, m, { args, isOwner, reply, botNumber, config }) => {
@@ -115,6 +117,7 @@ cmd({
     pattern: "goodbye",
     desc: "Enable/Disable goodbye messages",
     category: "settings",
+    ownerOnly: true,
     react: "👑"
 },
 async(conn, mek, m, { args, isOwner, reply, botNumber, config }) => {
@@ -138,6 +141,7 @@ cmd({
     pattern: "autoread",
     desc: "Enable/Disable auto read messages (Blue Tick)",
     category: "settings",
+    ownerOnly: true,
     react: "👀"
 },
 async(conn, mek, m, { args, isOwner, reply, botNumber, config }) => {
@@ -158,6 +162,7 @@ cmd({
     alias: ["avs", "statusseen", "astatus"],
     desc: "Auto view status updates",
     category: "settings",
+    ownerOnly: true,
     react: "😎"
 },
 async(conn, mek, m, { args, isOwner, reply, botNumber, config }) => {
@@ -178,6 +183,7 @@ cmd({
     alias: ["als"],
     desc: "Auto like status updates",
     category: "settings",
+    ownerOnly: true,
     react: "❤️"
 },
 async(conn, mek, m, { args, isOwner, reply, botNumber, config }) => {
@@ -201,6 +207,7 @@ cmd({
     pattern: "mode",
     desc: "Change bot mode (public/private/groups/inbox)",
     category: "settings",
+    ownerOnly: true,
     react: "⚙️"
 },
 async(conn, mek, m, { args, isOwner, reply, botNumber, config }) => {
@@ -219,6 +226,7 @@ cmd({
     pattern: "setprefix",
     desc: "Change bot prefix",
     category: "settings",
+    ownerOnly: true,
     react: "👑"
 },
 async(conn, mek, m, { args, isOwner, reply, botNumber, config }) => {

@@ -150,7 +150,7 @@ arslan({
 
 📌 Links will no longer be filtered.
 
-💖 Powered by ARSLAN-MD`);
+💖 Powered by MUZAMIL-XD`);
     }
 });
 

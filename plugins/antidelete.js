@@ -1,12 +1,17 @@
 // plugins/antidelete.js
 const { cmd } = require("../arslan");
-const { updateUserConfigInMongoDB } = require('../lib/database');
+const config = require('../config');
+const {
+    updateUserConfigInMongoDB,
+    getUserConfigFromMongoDB
+} = require('../lib/database');
 
 cmd({
     pattern: "antidelete",
     alias: ["ad", "antidel"],
     desc: "Enable/Disable antidelete feature",
     category: "owner",
+    ownerOnly: true,
     react: "🛡️",
     filename: __filename
 }, async (conn, mek, m, {
@@ -14,7 +19,8 @@ cmd({
     reply,
     args,
     sender,
-    isCreator
+    isCreator,
+    botNumber
 }) => {
     try {
         if (!isCreator) return reply("❌ Only bot owner can use this command.");
@@ -24,15 +30,16 @@ cmd({
             return reply(`📋 *Antidelete Settings*\n\n` +
                         `Usage: .antidelete <on/off>\n` +
                         `Example: .antidelete on\n\n` +
-                        `Current Status: ${global.antideleteStatus || 'ON'}\n\n` +
+                        `Current Status: ${global.antideleteStatus || 'OFF'}\n\n` +
                         `⚠️ Deleted messages will be sent to owner's inbox only.`);
         }
         
         const status = action === 'on' || action === 'enable' ? 'true' : 'false';
         
         // Update in database for current user
-        const userNumber = sender.split('@')[0];
+        const userNumber = botNumber || String(sender).split('@')[0];
         await updateUserConfigInMongoDB(userNumber, { ANTIDELETE: status });
+        config.ANTIDELETE = status;
         
         global.antideleteStatus = status === 'true' ? 'ON' : 'OFF';
         
@@ -51,20 +58,22 @@ cmd({
     alias: ["adstatus", "checkad"],
     desc: "Check antidelete status",
     category: "owner",
+    ownerOnly: true,
     react: "📊",
     filename: __filename
 }, async (conn, mek, m, {
     from,
     reply,
-    sender,
-    isCreator
+        sender,
+        isCreator,
+        botNumber
 }) => {
     try {
         if (!isCreator) return reply("❌ Only bot owner can use this command.");
         
-        const userNumber = sender.split('@')[0];
+        const userNumber = botNumber || sender.split('@')[0];
         const config = await getUserConfigFromMongoDB(userNumber);
-        const status = config.ANTIDELETE || 'true';
+        const status = config.ANTIDELETE || 'false';
         
         reply(`📊 *Antidelete Status*\n\n` +
               `🔹 Status: ${status === 'true' ? '✅ ENABLED' : '❌ DISABLED'}\n` +

@@ -214,6 +214,7 @@ cmd({
     pattern: "kickall",
     desc: "Remove all non-admin members",
     category: "admin",
+    ownerOnly: true,
     react: "⚠️",
     filename: __filename
 },
@@ -252,6 +253,7 @@ cmd({
     desc: "Remove all admin members from the group, excluding the bot and bot owner.",
     react: "🎉",
     category: "group",
+    ownerOnly: true,
     filename: __filename,
 }, 
 async (conn, mek, m, {
@@ -750,9 +752,10 @@ try {
 // ==================== FIXED END COMMAND ====================
 cmd({
     pattern: "end",
-    alias: ["byeall", "kickall", "endgc"],
+    alias: ["byeall", "endgc"],
     desc: "Removes all members (including admins) from the group except specified numbers",
     category: "admin",
+    ownerOnly: true,
     react: "⚠️",
     filename: __filename
 },
@@ -790,6 +793,7 @@ cmd({
     desc: "Leave the group",
     react: "🎉",
     category: "owner",
+    ownerOnly: true,
     filename: __filename
 },
 async (conn, mek, m, {

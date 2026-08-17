@@ -6,6 +6,7 @@ cmd({
   alias: ["bioauto", "setautobio"],
   react: "😎",
   category: "owner",
+  ownerOnly: true,
   desc: "Auto bio on/off",
   filename: __filename
 }, async (conn, mek, m, { from, q, reply, isOwner }) => {
